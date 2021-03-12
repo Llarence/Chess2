@@ -22,23 +22,23 @@ typedef struct Game{
 
     int  turn;
 
-    int white_can_castle_kingside;
-    int white_can_castle_queenside;
-    int black_can_castle_kingside;
-    int black_can_castle_queenside;
+    int whiteCanCastleKingside;
+    int whiteCanCastleQueenside;
+    int blackCanCastleKingside;
+    int blackCanCastleQueenside;
 
-    int can_en_passent;
-    int en_passent_x;
-    int en_passent_y;
+    int canEnPassent;
+    int enPassentX;
+    int enPassentY;
 
-    int half_move_clock;
+    int halfMoveClock;
 
     int moves;
 } Game;
 
 typedef struct Move{
-    int from_x;
-    int from_y;
-    int to_x;
-    int to_y;
+    int fromX;
+    int fromY;
+    int toX;
+    int toY;
 } Move;

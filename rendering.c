@@ -7,11 +7,12 @@ int texture;
 
 Game game;
 
-void create_texture(){
+void createTexture(){
     texture = SOIL_load_OGL_texture("pieces.png", SOIL_LOAD_RGBA, SOIL_CREATE_NEW_ID, SOIL_FLAG_INVERT_Y);
+    glBindTexture(GL_TEXTURE_2D, texture);
 }
 
-void draw_piece(Piece piece, float x1, float x2, float y1, float y2){
+void drawPiece(Piece piece, float x1, float x2, float y1, float y2){
     if(piece.type != NONE){
         glColor3ub(0xFF, 0xFF, 0xFF);
 
@@ -19,7 +20,6 @@ void draw_piece(Piece piece, float x1, float x2, float y1, float y2){
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
         glEnable(GL_TEXTURE_2D);
-        glBindTexture (GL_TEXTURE_2D, texture);
 
         glBegin(GL_QUADS);
 
@@ -83,7 +83,7 @@ void draw_piece(Piece piece, float x1, float x2, float y1, float y2){
     }
 }
 
-void render_game(Game *game){
+void renderGame(Game *game){
     for(int x = 0; x < 8; x++){
         for(int y = 0; y < 8; y++){
             int width = glutGet(GLUT_WINDOW_WIDTH);
@@ -127,19 +127,19 @@ void render_game(Game *game){
 
             glEnd();
 
-            draw_piece(game->board[x][y], x1, x2, y1, y2);
+            drawPiece(game->board[x][y], x1, x2, y1, y2);
         }
     }
 }
 
 void render(){
     glClear(GL_COLOR_BUFFER_BIT);
-    render_game(&game);
+    renderGame(&game);
     glFlush();
 }
 
-void init_window(int argc, char** argv){
-    init_game(&game);
+void initWindow(int argc, char** argv){
+    initGame(&game);
 
     glutInit(&argc, argv);
     glutInitDisplayMode(GLUT_SINGLE);
@@ -148,7 +148,7 @@ void init_window(int argc, char** argv){
     glutInitWindowPosition(100, 100);
     glutCreateWindow("Game");
 
-    create_texture();
+    createTexture();
     glutDisplayFunc(render);
 
     glutMainLoop();

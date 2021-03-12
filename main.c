@@ -3,6 +3,6 @@
 #include "rendering.c"
 
 int main(int argc, char** argv){
-    init_window(argc, argv);
+    initWindow(argc, argv);
     return 0;
 }
