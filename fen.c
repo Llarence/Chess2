@@ -30,7 +30,7 @@ void read_fen(Game *game, const char *fen){
     char curr_char;
     char next_char;
 
-    for(int i = 0; fen[i] == '\0'; i++){
+    for(int i = 0; fen[i] != '\0'; i++){
         curr_char = fen[i];
         next_char = fen[i + 1];
 
@@ -46,15 +46,39 @@ void read_fen(Game *game, const char *fen){
                             board_pos += 1;
                             break;
                         
-                        case 'p':
-                            game->board[board_pos % 8][(63 - board_pos) / 8].type = PAWN;
-                            game->board[board_pos % 8][(63 - board_pos) / 8].color = BLACK;
-                            board_pos += 1;
-                            break;
-                        
                         case 'N':
                             game->board[board_pos % 8][(63 - board_pos) / 8].type = KNIGHT;
                             game->board[board_pos % 8][(63 - board_pos) / 8].color = WHITE;
+                            board_pos += 1;
+                            break;
+                        
+                        case 'B':
+                            game->board[board_pos % 8][(63 - board_pos) / 8].type = BISHOP;
+                            game->board[board_pos % 8][(63 - board_pos) / 8].color = WHITE;
+                            board_pos += 1;
+                            break;
+                        
+                        case 'R':
+                            game->board[board_pos % 8][(63 - board_pos) / 8].type = ROOK;
+                            game->board[board_pos % 8][(63 - board_pos) / 8].color = WHITE;
+                            board_pos += 1;
+                            break;
+                        
+                        case 'Q':
+                            game->board[board_pos % 8][(63 - board_pos) / 8].type = QUEEN;
+                            game->board[board_pos % 8][(63 - board_pos) / 8].color = WHITE;
+                            board_pos += 1;
+                            break;
+                        
+                        case 'K':
+                            game->board[board_pos % 8][(63 - board_pos) / 8].type = KING;
+                            game->board[board_pos % 8][(63 - board_pos) / 8].color = WHITE;
+                            board_pos += 1;
+                            break;
+                        
+                        case 'p':
+                            game->board[board_pos % 8][(63 - board_pos) / 8].type = PAWN;
+                            game->board[board_pos % 8][(63 - board_pos) / 8].color = BLACK;
                             board_pos += 1;
                             break;
 
@@ -64,21 +88,9 @@ void read_fen(Game *game, const char *fen){
                             board_pos += 1;
                             break;
 
-                        case 'B':
-                            game->board[board_pos % 8][(63 - board_pos) / 8].type = BISHOP;
-                            game->board[board_pos % 8][(63 - board_pos) / 8].color = WHITE;
-                            board_pos += 1;
-                            break;
-
                         case 'b':
                             game->board[board_pos % 8][(63 - board_pos) / 8].type = BISHOP;
                             game->board[board_pos % 8][(63 - board_pos) / 8].color = BLACK;
-                            board_pos += 1;
-                            break;
-                        
-                        case 'R':
-                            game->board[board_pos % 8][(63 - board_pos) / 8].type = ROOK;
-                            game->board[board_pos % 8][(63 - board_pos) / 8].color = WHITE;
                             board_pos += 1;
                             break;
 
@@ -87,22 +99,10 @@ void read_fen(Game *game, const char *fen){
                             game->board[board_pos % 8][(63 - board_pos) / 8].color = BLACK;
                             board_pos += 1;
                             break;
-                        
-                        case 'Q':
-                            game->board[board_pos % 8][(63 - board_pos) / 8].type = ROOK;
-                            game->board[board_pos % 8][(63 - board_pos) / 8].color = WHITE;
-                            board_pos += 1;
-                            break;
 
                         case 'q':
-                            game->board[board_pos % 8][(63 - board_pos)/ 8].type = ROOK;
+                            game->board[board_pos % 8][(63 - board_pos)/ 8].type = QUEEN;
                             game->board[board_pos % 8][(63 - board_pos) / 8].color = BLACK;
-                            board_pos += 1;
-                            break;
-                        
-                        case 'K':
-                            game->board[board_pos % 8][(63 - board_pos) / 8].type = KING;
-                            game->board[board_pos % 8][(63 - board_pos) / 8].color = WHITE;
                             board_pos += 1;
                             break;
 
