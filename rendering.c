@@ -233,8 +233,10 @@ void mouseClick(int button, int state, int x, int y){
                     }
 
                     if(x1 < mouse_x && mouse_x < x2 && y1 < mouse_y && mouse_y < y2){
-                        game.board[x][y] = game.board[selected_x][selected_y];
-                        game.board[selected_x][selected_y].type = NONE;
+                        if(x != selected_x || y != selected_y){
+                            game.board[x][y] = game.board[selected_x][selected_y];
+                            game.board[selected_x][selected_y].type = NONE;
+                        }
                     }
                 }
             }
