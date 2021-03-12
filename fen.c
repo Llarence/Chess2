@@ -1,9 +1,5 @@
 #include "game.c"
 
-void init_game(Game *game){
-    read_fen(game, "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
-}
-
 void clear_game(Game *game){
     for(int x = 0; x < 8; x++){
         for(int y = 0; y < 8; y++){
@@ -26,15 +22,18 @@ void clear_game(Game *game){
     game->moves = 0;
 }
 
-void read_fen(Game *game, char *fen){
+void read_fen(Game *game, const char *fen){
     clear_game(game);
 
     int board_pos = 0;
     int spaces = 0;
     char curr_char;
+    char next_char;
 
     for(int i = 0; fen[i] == '\0'; i++){
         curr_char = fen[i];
+        next_char = fen[i + 1];
+
         if(curr_char == ' '){
             spaces += 1;
         }else{
@@ -147,8 +146,6 @@ void read_fen(Game *game, char *fen){
                     break;
                 
                 case 3:
-                    char next_char = fen[i + 1];
-
                     if(curr_char != '-'){
                         game->can_en_passent = TRUE;
                         game->en_passent_x = curr_char - 'a';
@@ -166,4 +163,8 @@ void read_fen(Game *game, char *fen){
             }
         }
     }
+}
+
+void init_game(Game *game){
+    read_fen(game, "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
 }

@@ -1,5 +1,5 @@
-const FALSE = 0;
-const TRUE = 1;
+const int FALSE = 0;
+const int TRUE = 1;
 
 const int NONE = 0;
 const int PAWN = 1;
