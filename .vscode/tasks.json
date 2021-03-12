@@ -1,0 +1,35 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"type": "shell",
+			"label": "Build",
+			"command": "/usr/bin/g++",
+			"args": [
+				"main.c",
+				"-lglut",
+				"-lGLU",
+				"-lGL",
+				"-lSOIL",
+				"-std=c++17"
+			],
+			"options": {
+				"cwd": "${workspaceFolder}"
+			},
+			"problemMatcher": [
+				"$gcc"
+			],
+			"group": "build"
+		},
+		{
+			"type": "shell",
+			"label": "Build And Run",
+			"command": "./a.out",
+			"dependsOn": ["Build"],
+			"group": {
+				"kind": "build",
+				"isDefault": true
+			}
+		}
+	]
+}
