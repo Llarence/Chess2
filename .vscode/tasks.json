@@ -7,7 +7,6 @@
 			"command": "/usr/bin/g++",
 			"args": [
 				"main.c",
-				"-I/.git",
 				"-lglut",
 				"-lGLU",
 				"-lGL",

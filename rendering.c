@@ -1,15 +1,25 @@
 #include <GL/glut.h>
 #include <SOIL/SOIL.h>
+#include <AL/al.h>
 
 #include "fen.c"
+
+float mouse_x;
+float mouse_y;
 
 int texture;
 
 Game game;
 
+int holding_selected;
+int selected_x;
+int selected_y;
+
 void createTexture(){
     texture = SOIL_load_OGL_texture("pieces.png", SOIL_LOAD_RGBA, SOIL_CREATE_NEW_ID, SOIL_FLAG_INVERT_Y);
     glBindTexture(GL_TEXTURE_2D, texture);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 }
 
 void drawPiece(Piece piece, float x1, float x2, float y1, float y2){
@@ -84,11 +94,11 @@ void drawPiece(Piece piece, float x1, float x2, float y1, float y2){
 }
 
 void renderGame(Game *game){
+    int width = glutGet(GLUT_WINDOW_WIDTH);
+    int height = glutGet(GLUT_WINDOW_HEIGHT);
+
     for(int x = 0; x < 8; x++){
         for(int y = 0; y < 8; y++){
-            int width = glutGet(GLUT_WINDOW_WIDTH);
-            int height = glutGet(GLUT_WINDOW_HEIGHT);
-
             if((x + y) % 2 == 0){
                 glColor3ub(0xF2, 0xB8, 0x85);
             }else{
@@ -127,7 +137,9 @@ void renderGame(Game *game){
 
             glEnd();
 
-            drawPiece(game->board[x][y], x1, x2, y1, y2);
+            if(!holding_selected || selected_x != x || selected_y != y){
+                drawPiece(game->board[x][y], x1, x2, y1, y2);
+            }
         }
     }
 }
@@ -135,7 +147,103 @@ void renderGame(Game *game){
 void render(){
     glClear(GL_COLOR_BUFFER_BIT);
     renderGame(&game);
+
+    int width = glutGet(GLUT_WINDOW_WIDTH);
+    int height = glutGet(GLUT_WINDOW_HEIGHT);
+
+    float halfSizeX;
+    float halfSizeY;
+
+    if(width < height){
+        halfSizeX = (1.0 / 8.0);
+        halfSizeY = (1.0 / 8.0) / (height / (float)width);
+    }else{
+        halfSizeX = (1.0 / 8.0) / (width / (float)height);
+        halfSizeY = (1.0 / 8.0);
+    }
+
+    if(holding_selected){
+        drawPiece(game.board[selected_x][selected_y], mouse_x - halfSizeX, mouse_x + halfSizeX, mouse_y - halfSizeY, mouse_y + halfSizeY);
+    }
+
     glFlush();
+}
+
+void mouseMove(int x, int y){
+    mouse_x = ((x / (float)glutGet(GLUT_WINDOW_WIDTH)) * 2.0) - 1.0;
+    mouse_y = (1 - (y / (float)glutGet(GLUT_WINDOW_HEIGHT)) * 2.0);
+    render();
+}
+
+void mouseClick(int button, int state, int x, int y){
+    mouse_x = ((x / (float)glutGet(GLUT_WINDOW_WIDTH)) * 2.0) - 1.0;
+    mouse_y = (1 - (y / (float)glutGet(GLUT_WINDOW_HEIGHT)) * 2.0);
+
+    if(button == GLUT_LEFT_BUTTON){
+        int width = glutGet(GLUT_WINDOW_WIDTH);
+        int height = glutGet(GLUT_WINDOW_HEIGHT);
+        
+        if(state == GLUT_DOWN) {
+            for(int x = 0; x < 8; x++){
+                for(int y = 0; y < 8; y++){
+                    float x1;
+                    float x2;
+                    float y1;
+                    float y2;
+
+                    if(width < height){
+                        x1 = -1.0 + (x / 4.0);
+                        x2 = -3.0 / 4.0 + (x / 4.0);
+                        y1 = (-1.0 + (y / 4.0)) / (height / (float)width);
+                        y2 = (-3.0 / 4.0 + (y / 4.0)) / (height / (float)width);
+                    }else{
+                        x1 = (-1.0 + (x / 4.0)) / (width / (float)height);
+                        x2 = (-3.0 / 4.0 + (x / 4.0)) / (width / (float)height);
+                        y1 = -1.0 + (y / 4.0);
+                        y2 = -3.0 / 4.0 + (y / 4.0);
+                    }
+
+                    if(x1 < mouse_x && mouse_x < x2 && y1 < mouse_y && mouse_y < y2){
+                        holding_selected = TRUE;
+                        selected_x = x;
+                        selected_y = y;
+                    }
+                }
+            }
+        }
+
+        if(state == GLUT_UP) {
+            for(int x = 0; x < 8; x++){
+                for(int y = 0; y < 8; y++){
+                    float x1;
+                    float x2;
+                    float y1;
+                    float y2;
+
+                    if(width < height){
+                        x1 = -1.0 + (x / 4.0);
+                        x2 = -3.0 / 4.0 + (x / 4.0);
+                        y1 = (-1.0 + (y / 4.0)) / (height / (float)width);
+                        y2 = (-3.0 / 4.0 + (y / 4.0)) / (height / (float)width);
+                    }else{
+                        x1 = (-1.0 + (x / 4.0)) / (width / (float)height);
+                        x2 = (-3.0 / 4.0 + (x / 4.0)) / (width / (float)height);
+                        y1 = -1.0 + (y / 4.0);
+                        y2 = -3.0 / 4.0 + (y / 4.0);
+                    }
+
+                    if(x1 < mouse_x && mouse_x < x2 && y1 < mouse_y && mouse_y < y2){
+                        game.board[x][y] = game.board[selected_x][selected_y];
+                        game.board[selected_x][selected_y].type = NONE;
+                    }
+                }
+            }
+
+            holding_selected = FALSE;
+        }
+    }
+    
+    render();
 }
 
 void initWindow(int argc, char** argv){
@@ -144,12 +252,15 @@ void initWindow(int argc, char** argv){
     glutInit(&argc, argv);
     glutInitDisplayMode(GLUT_SINGLE);
 
-    glutInitWindowSize(400, 400);
+    glutInitWindowSize(800, 800);
     glutInitWindowPosition(100, 100);
     glutCreateWindow("Game");
 
     createTexture();
+
     glutDisplayFunc(render);
+    glutMouseFunc(mouseClick);
+    glutMotionFunc(mouseMove);
 
     glutMainLoop();
 }
