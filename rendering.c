@@ -208,9 +208,11 @@ void mouseClick(int button, int state, int x, int y){
                     }
 
                     if(x1 < mouse_x && mouse_x < x2 && y1 < mouse_y && mouse_y < y2){
-                        holding_selected = TRUE;
-                        selected_x = x;
-                        selected_y = y;
+                        if(game.turn == game.board[x][y].color){
+                            holding_selected = TRUE;
+                            selected_x = x;
+                            selected_y = y;
+                        }
                     }
                 }
             }

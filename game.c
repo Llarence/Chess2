@@ -103,47 +103,49 @@ int isPuesdoLegal(Game *game, Move move){
                 break;
             
             case BISHOP:
-                if(deltaX > 0 || deltaY > 0){
-                    for(int x = 1; x < deltaX; x++){
-                        for(int y = 1; y < deltaY; y++){
-                            if(game->board[x][y].type != NONE){
-                                return FALSE;
+                if(deltaX == deltaY || -deltaX == deltaY){
+                    if(deltaX > 0 && deltaY > 0){
+                        for(int x = move.fromX + 1; x < move.toX; x++){
+                            for(int y = move.fromY + 1; y < move.toY; y++){
+                                if(game->board[x][y].type != NONE){
+                                    return FALSE;
+                                }
                             }
                         }
 
                         return TRUE;
                     }
-                }
 
-                if(deltaX < 0 || deltaY > 0){
-                    for(int x = -1; x > deltaX; x--){
-                        for(int y = 1; y < deltaY; y++){
-                            if(game->board[x][y].type != NONE){
-                                return FALSE;
+                    if(deltaX < 0 && deltaY > 0){
+                        for(int x = move.fromX - 1; x > move.toX; x--){
+                            for(int y = move.fromY + 1; y < move.toY; y++){
+                                if(game->board[x][y].type != NONE){
+                                    return FALSE;
+                                }
                             }
                         }
 
                         return TRUE;
                     }
-                }
 
-                if(deltaX < 0 || deltaY < 0){
-                    for(int x = -1; x > deltaX; x--){
-                        for(int y = -1; y > deltaY; y--){
-                            if(game->board[x][y].type != NONE){
-                                return FALSE;
+                    if(deltaX < 0 && deltaY < 0){
+                        for(int x = move.fromX - 1; x > move.toX; x--){
+                            for(int y = move.fromY - 1; y > move.toY; y--){
+                                if(game->board[x][y].type != NONE){
+                                    return FALSE;
+                                }
                             }
                         }
 
                         return TRUE;
                     }
-                }
 
-                if(deltaX > 0 || deltaY < 0){
-                    for(int x = 1; x < deltaX; x++){
-                        for(int y = -1; y > deltaY; y--){
-                            if(game->board[x][y].type != NONE){
-                                return FALSE;
+                    if(deltaX > 0 && deltaY < 0){
+                        for(int x = move.fromX + 1; x < move.toX; x++){
+                            for(int y = move.fromY - 1; y > move.toY; y--){
+                                if(game->board[x][y].type != NONE){
+                                    return FALSE;
+                                }
                             }
                         }
 
@@ -154,54 +156,92 @@ int isPuesdoLegal(Game *game, Move move){
                 break;
 
             case ROOK:
-                if(deltaX > 0 || deltaY == 0){
-                    for(int x = 1; x < deltaX; x++){
+                if(deltaX > 0 && deltaY == 0){
+                    for(int x = move.fromX + 1; x < move.toX; x++){
                         if(game->board[x][move.fromY].type != NONE){
                             return FALSE;
                         }
-
-                        return TRUE;
                     }
+
+                    return TRUE;
                 }
 
-                if(deltaX < 0 || deltaY == 0){
-                    for(int x = -1; x > deltaX; x--){
+                if(deltaX < 0 && deltaY == 0){
+                    for(int x = move.fromX - 1; x > move.toX; x--){
                         if(game->board[x][move.fromY].type != NONE){
                             return FALSE;
                         }
-
-                        return TRUE;
                     }
+
+                    return TRUE;
                 }
 
-                if(deltaX == 0 || deltaY > 0){
-                    for(int y = 1; y < deltaY; y++){
+                if(deltaX == 0 && deltaY > 0){
+                    for(int y = move.fromY + 1; y < move.toY; y++){
                         if(game->board[move.fromX][y].type != NONE){
                             return FALSE;
                         }
-
-                        return TRUE;
                     }
+
+                    return TRUE;
                 }
 
-                if(deltaX == 0 || deltaY < 0){
-                    for(int y = -1; y > deltaY; y--){
+                if(deltaX == 0 && deltaY < 0){
+                    for(int y = move.fromY - 1; y > move.toY; y--){
                         if(game->board[move.fromX][y].type != NONE){
                             return FALSE;
                         }
-
-                        return TRUE;
                     }
+
+                    return TRUE;
                 }
 
                 break;
             
             case QUEEN:
-                if(deltaX > 0 || deltaY > 0){
-                    for(int x = 1; x < deltaX; x++){
-                        for(int y = 1; y < deltaY; y++){
-                            if(game->board[x][y].type != NONE){
-                                return FALSE;
+                if(deltaX == deltaY || -deltaX == deltaY){
+                    if(deltaX > 0 && deltaY > 0){
+                        for(int x = move.fromX + 1; x < move.toX; x++){
+                            for(int y = move.fromY + 1; y < move.toY; y++){
+                                if(game->board[x][y].type != NONE){
+                                    return FALSE;
+                                }
+                            }
+                        }
+
+                        return TRUE;
+                    }
+
+                    if(deltaX < 0 && deltaY > 0){
+                        for(int x = move.fromX - 1; x > move.toX; x--){
+                            for(int y = move.fromY + 1; y < move.toY; y++){
+                                if(game->board[x][y].type != NONE){
+                                    return FALSE;
+                                }
+                            }
+                        }
+
+                        return TRUE;
+                    }
+
+                    if(deltaX < 0 && deltaY < 0){
+                        for(int x = move.fromX - 1; x > move.toX; x--){
+                            for(int y = move.fromY - 1; y > move.toY; y--){
+                                if(game->board[x][y].type != NONE){
+                                    return FALSE;
+                                }
+                            }
+                        }
+
+                        return TRUE;
+                    }
+
+                    if(deltaX > 0 && deltaY < 0){
+                        for(int x = move.fromX + 1; x < move.toX; x++){
+                            for(int y = move.fromY - 1; y > move.toY; y--){
+                                if(game->board[x][y].type != NONE){
+                                    return FALSE;
+                                }
                             }
                         }
 
@@ -209,86 +249,54 @@ int isPuesdoLegal(Game *game, Move move){
                     }
                 }
 
-                if(deltaX < 0 || deltaY > 0){
-                    for(int x = -1; x > deltaX; x--){
-                        for(int y = 1; y < deltaY; y++){
-                            if(game->board[x][y].type != NONE){
-                                return FALSE;
-                            }
-                        }
-
-                        return TRUE;
-                    }
-                }
-
-                if(deltaX < 0 || deltaY < 0){
-                    for(int x = -1; x > deltaX; x--){
-                        for(int y = -1; y > deltaY; y--){
-                            if(game->board[x][y].type != NONE){
-                                return FALSE;
-                            }
-                        }
-
-                        return TRUE;
-                    }
-                }
-
-                if(deltaX > 0 || deltaY < 0){
-                    for(int x = 1; x < deltaX; x++){
-                        for(int y = -1; y > deltaY; y--){
-                            if(game->board[x][y].type != NONE){
-                                return FALSE;
-                            }
-                        }
-
-                        return TRUE;
-                    }
-                }
-
-                if(deltaX > 0 || deltaY == 0){
-                    for(int x = 1; x < deltaX; x++){
+                if(deltaX > 0 && deltaY == 0){
+                    for(int x = move.fromX + 1; x < move.toX; x++){
                         if(game->board[x][move.fromY].type != NONE){
                             return FALSE;
                         }
-
-                        return TRUE;
                     }
+
+                    return TRUE;
                 }
 
-                if(deltaX < 0 || deltaY == 0){
-                    for(int x = -1; x > deltaX; x--){
+                if(deltaX < 0 && deltaY == 0){
+                    for(int x = move.fromX - 1; x > move.toX; x--){
                         if(game->board[x][move.fromY].type != NONE){
                             return FALSE;
                         }
-
-                        return TRUE;
                     }
+
+                    return TRUE;
                 }
 
-                if(deltaX == 0 || deltaY > 0){
-                    for(int y = 1; y < deltaY; y++){
+                if(deltaX == 0 && deltaY > 0){
+                    for(int y = move.fromY + 1; y < move.toY; y++){
                         if(game->board[move.fromX][y].type != NONE){
                             return FALSE;
                         }
-
-                        return TRUE;
                     }
+
+                    return TRUE;
                 }
 
-                if(deltaX == 0 || deltaY < 0){
-                    for(int y = -1; y > deltaY; y--){
+                if(deltaX == 0 && deltaY < 0){
+                    for(int y = move.fromY - 1; y > move.toY; y--){
                         if(game->board[move.fromX][y].type != NONE){
                             return FALSE;
                         }
-
-                        return TRUE;
                     }
+
+                    return TRUE;
                 }
+
+                break;
             
             case KING:
                 if((deltaX <= 1 && deltaX >= -1) && (deltaY <= 1 && deltaY >= -1) && (deltaX != 0 && deltaY != 0)){
                     return TRUE;
                 }
+
+                break;
         }
     }
 
@@ -298,6 +306,11 @@ int isPuesdoLegal(Game *game, Move move){
 void doMove(Game *game, Move move){
     game->board[move.toX][move.toY] = game->board[move.fromX][move.fromY];
     game->board[move.fromX][move.fromY].type = NONE;
+    if(game->turn == WHITE){
+        game->turn = BLACK;
+    }else{
+        game->turn = WHITE;
+    }
 }
 
 void tryMove(Game *game, Move move){
