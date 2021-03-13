@@ -1,3 +1,6 @@
+#ifndef FEN
+#define FEN
+
 #include "game.c"
 
 void clearGame(Game *game){
@@ -168,3 +171,5 @@ void readFen(Game *game, const char *fen){
 void initGame(Game *game){
     readFen(game, "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
 }
+
+#endif

@@ -1,7 +1,11 @@
+#ifndef RENDERING
+#define RENDERING
+
 #include <GL/glut.h>
 #include <SOIL/SOIL.h>
 #include <AL/al.h>
 
+#include "game.c"
 #include "fen.c"
 
 float mouse_x;
@@ -93,7 +97,7 @@ void drawPiece(Piece piece, float x1, float x2, float y1, float y2){
     }
 }
 
-void renderGame(Game *game){
+void renderGame(){
     int width = glutGet(GLUT_WINDOW_WIDTH);
     int height = glutGet(GLUT_WINDOW_HEIGHT);
 
@@ -138,7 +142,7 @@ void renderGame(Game *game){
             glEnd();
 
             if(!holding_selected || selected_x != x || selected_y != y){
-                drawPiece(game->board[x][y], x1, x2, y1, y2);
+                drawPiece(game.board[x][y], x1, x2, y1, y2);
             }
         }
     }
@@ -146,7 +150,7 @@ void renderGame(Game *game){
 
 void render(){
     glClear(GL_COLOR_BUFFER_BIT);
-    renderGame(&game);
+    renderGame();
 
     int width = glutGet(GLUT_WINDOW_WIDTH);
     int height = glutGet(GLUT_WINDOW_HEIGHT);
@@ -234,8 +238,12 @@ void mouseClick(int button, int state, int x, int y){
 
                     if(x1 < mouse_x && mouse_x < x2 && y1 < mouse_y && mouse_y < y2){
                         if(x != selected_x || y != selected_y){
-                            game.board[x][y] = game.board[selected_x][selected_y];
-                            game.board[selected_x][selected_y].type = NONE;
+                            Move move;
+                            move.fromX = selected_x;
+                            move.fromY = selected_y;
+                            move.toX = x;
+                            move.toY = y;
+                            tryMove(&game, move);
                         }
                     }
                 }
@@ -266,3 +274,5 @@ void initWindow(int argc, char** argv){
 
     glutMainLoop();
 }
+
+#endif
