@@ -4,22 +4,29 @@
 #include <GL/glut.h>
 #include <SOIL/SOIL.h>
 #include <AL/al.h>
+#include <AL/alc.h>
 
 #include "game.c"
 #include "fen.c"
 
+Game game;
+
+GLuint texture;
+
+ALuint pieceMove;
+
 float mouse_x;
 float mouse_y;
-
-int texture;
-
-Game game;
 
 int holding_selected;
 int selected_x;
 int selected_y;
 
-void createTexture(){
+void createSounds(){
+
+}
+
+void createTextures(){
     texture = SOIL_load_OGL_texture("pieces.png", SOIL_LOAD_RGBA, SOIL_CREATE_NEW_ID, SOIL_FLAG_INVERT_Y);
     glBindTexture(GL_TEXTURE_2D, texture);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
@@ -103,10 +110,23 @@ void renderGame(){
 
     for(int x = 0; x < 8; x++){
         for(int y = 0; y < 8; y++){
-            if((x + y) % 2 == 0){
-                glColor3ub(0xF2, 0xB8, 0x85);
+            Move move;
+            move.fromX = selected_x;
+            move.fromY = selected_y;
+            move.toX = x;
+            move.toY = y;
+            if(!holding_selected || !isPuesdoLegal(&game, move)){
+                if((x + y) % 2 == 0){
+                    glColor3ub(0xF2, 0xB8, 0x85);
+                }else{
+                    glColor3ub(0xB3, 0x65, 0x2E);
+                }
             }else{
-                glColor3ub(0xB3, 0x65, 0x2E);
+                if((x + y) % 2 == 0){
+                    glColor3ub(0xE2, 0x5C, 0x43);
+                }else{
+                    glColor3ub(0xE2, 0x33, 0x17);
+                }
             }
 
             float x1;
@@ -124,12 +144,6 @@ void renderGame(){
                 x2 = (-3.0 / 4.0 + (x / 4.0)) / (width / (float)height);
                 y1 = -1.0 + (y / 4.0);
                 y2 = -3.0 / 4.0 + (y / 4.0);
-            }
-
-            if((x + y) % 2 == 0){
-                glColor3ub(0xF2, 0xB8, 0x85);
-            }else{
-                glColor3ub(0xB3, 0x65, 0x2E);
             }
 
             glBegin(GL_QUADS);
@@ -245,7 +259,9 @@ void mouseClick(int button, int state, int x, int y){
                             move.fromY = selected_y;
                             move.toX = x;
                             move.toY = y;
-                            tryMove(&game, move);
+                            if(tryMove(&game, move)){
+                                alSourcePlay(pieceMove);
+                            }
                         }
                     }
                 }
@@ -258,9 +274,24 @@ void mouseClick(int button, int state, int x, int y){
     render();
 }
 
-void initWindow(int argc, char** argv){
+void initSound(){
+    int argc = 0;
+    char *argv[0];
+    alutInit(&argc, argv);
+
+    ALuint buffer;
+    buffer = alutCreateBufferFromFile("pieceMove.wav");
+    alGenSources(1, &pieceMove);
+    alSourcei(pieceMove, AL_BUFFER, buffer);
+}
+
+void initWindow(){
     initGame(&game);
 
+    initSound();
+
+    int argc = 0;
+    char *argv[0];
     glutInit(&argc, argv);
     glutInitDisplayMode(GLUT_SINGLE);
 
@@ -268,13 +299,15 @@ void initWindow(int argc, char** argv){
     glutInitWindowPosition(100, 100);
     glutCreateWindow("Game");
 
-    createTexture();
+    createTextures();
 
     glutDisplayFunc(render);
     glutMouseFunc(mouseClick);
     glutMotionFunc(mouseMove);
 
     glutMainLoop();
+
+    alutExit();
 }
 
 #endif

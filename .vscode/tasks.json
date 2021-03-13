@@ -11,6 +11,8 @@
 				"-lGLU",
 				"-lGL",
 				"-lSOIL",
+				"-lopenal",
+				"-lalut",
 				"-std=c++17"
 			],
 			"options": {

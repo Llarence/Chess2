@@ -68,7 +68,7 @@ int isPuesdoLegal(Game *game, Move move){
             case PAWN:
                 if(piece.color == WHITE){
                     if(deltaY == 1){
-                        if(attacked.type != NONE){
+                        if(attacked.type != NONE || (game->canEnPassent && game->enPassentX == move.toX && game->enPassentY == 5)){
                             if(deltaX == 1 || deltaX ==-1){
                                 return TRUE;
                             }
@@ -77,16 +77,28 @@ int isPuesdoLegal(Game *game, Move move){
                                 return TRUE;
                             }
                         }
+                    }else if(move.fromY == 1 && deltaY == 2){
+                        if(deltaX == 0){
+                            if(game->board[move.fromX][move.fromY + 1].type == NONE && attacked.type == NONE){
+                                return TRUE;
+                            }
+                        }
                     }
                 }else{
                     if(deltaY == -1){
-                        if(attacked.type != NONE){
+                        if(attacked.type != NONE || (game->canEnPassent && game->enPassentX == move.toX && game->enPassentY == 2)){
                             int deltaX = move.toX - move.fromX;
                             if(deltaX == 1 || deltaX ==-1){
                                 return TRUE;
                             }
                         }else{
                             if(deltaX == 0){
+                                return TRUE;
+                            }
+                        }
+                    }else if(move.fromY == 6 && deltaY == -2){
+                        if(deltaX == 0){
+                            if(game->board[move.fromX][move.fromY - 1].type == NONE && attacked.type == NONE){
                                 return TRUE;
                             }
                         }
@@ -304,21 +316,39 @@ int isPuesdoLegal(Game *game, Move move){
 }
 
 void doMove(Game *game, Move move){
+    if(game->board[move.toX][move.toY].type == NONE){
+        game->halfMoveClock += 1;
+    }
+
     game->board[move.toX][move.toY] = game->board[move.fromX][move.fromY];
     game->board[move.fromX][move.fromY].type = NONE;
+
+    int deltaY = move.toY - move.fromY;
+    if(game->board[move.toX][move.toY].type == PAWN && (deltaY == 2 || deltaY == -2)){
+        game->canEnPassent = TRUE;
+        game->enPassentX = move.toX;
+        game->enPassentY = move.toY;
+    }else{
+        game->canEnPassent = FALSE;
+    }
+
     if(game->turn == WHITE){
         game->turn = BLACK;
     }else{
         game->turn = WHITE;
+        game->moves += 1;
     }
 }
 
-void tryMove(Game *game, Move move){
+int tryMove(Game *game, Move move){
     if(isValidMove(move)){
         if(isPuesdoLegal(game, move)){
             doMove(game, move);
+            return TRUE;
         }
     }
+
+    return FALSE;
 }
 
 #endif
