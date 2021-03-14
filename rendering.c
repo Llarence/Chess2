@@ -115,7 +115,7 @@ void renderGame(){
             move.fromY = selected_y;
             move.toX = x;
             move.toY = y;
-            if(!holding_selected || !isPuesdoLegal(&game, move)){
+            if(!holding_selected || !isLegal(&game, move)){
                 if((x + y) % 2 == 0){
                     glColor3ub(0xF2, 0xB8, 0x85);
                 }else{
@@ -274,6 +274,10 @@ void mouseClick(int button, int state, int x, int y){
     render();
 }
 
+void onExit(){
+    alutExit();
+}
+
 void initSound(){
     int argc = 0;
     char *argv[0];
@@ -304,10 +308,9 @@ void initWindow(){
     glutDisplayFunc(render);
     glutMouseFunc(mouseClick);
     glutMotionFunc(mouseMove);
+    atexit(onExit);
 
     glutMainLoop();
-
-    alutExit();
 }
 
 #endif
