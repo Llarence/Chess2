@@ -15,6 +15,9 @@ const int KING = 6;
 const int WHITE = 0;
 const int BLACK = 1;
 
+const int STALEMATE = 1;
+const int CHECKMATE = 2;
+
 typedef struct Piece{
     int type;
     int color;
@@ -23,7 +26,7 @@ typedef struct Piece{
 typedef struct Game{
     Piece board[8][8];
 
-    int  turn;
+    int turn;
 
     int whiteCanCastleKingside;
     int whiteCanCastleQueenside;
@@ -56,6 +59,8 @@ Game copyGame(Game *game){
         }
     }
 
+    newGame.turn = game->turn;
+
     newGame.whiteCanCastleKingside = game->whiteCanCastleKingside;
     newGame.whiteCanCastleQueenside = game->whiteCanCastleQueenside;
     newGame.blackCanCastleKingside = game->blackCanCastleKingside;
@@ -75,12 +80,8 @@ Game copyGame(Game *game){
 int isPsuedoLegal(Game *game, Move move);
 
 int isAttacked(Game *game, Piece piece){
-    int toX;
-    int toY;
-    int found = FALSE;
-
-    for(toX = 0; toX < 8; toX++){
-        for(toY = 0; toY < 8; toY++){
+    for(int toX = 0; toX < 8; toX++){
+        for(int toY = 0; toY < 8; toY++){
             Piece currPiece = game->board[toX][toY];
             if(currPiece.type == piece.type && currPiece.color == piece.color){
                 for(int fromX = 0; fromX < 8; fromX++){
@@ -118,7 +119,7 @@ void doMove(Game *game, Move move){
         }
     }
 
-    int deltaX = move.toY - move.fromY;
+    int deltaX = move.toX - move.fromX;
     int deltaY = move.toY - move.fromY;
 
     if(piece.type == KING){
@@ -171,16 +172,28 @@ void doMove(Game *game, Move move){
         }
     }
 
-    if(piece.type == PAWN && (deltaY == 2 || deltaY == -2)){
-        game->canEnPassent = TRUE;
-        game->enPassentX = move.toX;
-        if(game->turn == WHITE){
-            game->enPassentY = 2;
+    if(piece.type == PAWN){
+        if(deltaY == 2 || deltaY == -2){
+            game->canEnPassent = TRUE;
+            game->enPassentX = move.toX;
+            if(game->turn == WHITE){
+                game->enPassentY = 2;
+            }else{
+                game->enPassentY = 5;
+            }
         }else{
-            game->enPassentY = 5;
+            game->canEnPassent = FALSE;
         }
-    }else{
-        game->canEnPassent = FALSE;
+
+        if(piece.color == WHITE){
+            if(move.toY == 7){
+                game->board[move.toX][move.toY].type = move.promotion;
+            }
+        }else{
+            if(move.toY == 0){
+                game->board[move.toX][move.toY].type = move.promotion;
+            }
+        }
     }
 
     if(game->turn == WHITE){
@@ -194,7 +207,9 @@ void doMove(Game *game, Move move){
 int isValidMove(Move move){
     if(move.fromX != move.toX || move.fromY != move.toY){
         if((move.fromX < 8 && move.fromX >= 0) && (move.fromY < 8 && move.fromY >= 0) && (move.toX < 8 && move.toX >= 0) && (move.toY < 8 && move.toY >= 0)){
-            return TRUE;
+            if(move.promotion == QUEEN || move.promotion == ROOK || move.promotion == BISHOP || move.promotion == KNIGHT){
+                return TRUE;
+            }
         }
     }
 
@@ -545,6 +560,41 @@ int isLegal(Game *game, Move move){
         }
     }
 
+    return FALSE;
+}
+
+void generateLegalMoves(Game *game, Move *moves){
+    int i = 0;
+
+    for(int fromX = 0; fromX < 8; fromX++){
+        for(int fromY = 0; fromY < 8; fromY++){
+            for(int toX = 0; toX < 8; toX++){
+                for(int toY = 0; toY < 8; toY++){
+                    Move move = {fromX, fromY, toX, toY, QUEEN};
+                    if(isLegal(game, move)){
+                        moves[i] = move;
+                        i++;
+                    }
+                }
+            }
+        }
+    }
+
+    moves[i] = (Move){-1, -1, -1, -1, -1};
+}
+
+int isOver(Game *game){
+    Move moves[512];
+    generateLegalMoves(game, moves);
+    if(moves->fromX == -1){
+
+        if(isAttacked(game, (Piece){KING, game->turn})){
+            return CHECKMATE;
+        }
+
+        return STALEMATE;
+    }
+    
     return FALSE;
 }
 

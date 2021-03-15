@@ -4,6 +4,9 @@
         "string_view": "c",
         "initializer_list": "c",
         "utility": "c",
-        "typeinfo": "c"
+        "typeinfo": "c",
+        "random": "c",
+        "limits": "c",
+        "algorithm": "c"
     }
 }

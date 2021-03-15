@@ -7,6 +7,7 @@ void clearGame(Game *game){
     for(int x = 0; x < 8; x++){
         for(int y = 0; y < 8; y++){
             game->board[x][y].type = NONE;
+            game->board[x][y].type = WHITE;
         }
     }
 
@@ -14,11 +15,12 @@ void clearGame(Game *game){
 
     game->whiteCanCastleKingside = FALSE;
     game->whiteCanCastleQueenside = FALSE;
-
     game->blackCanCastleKingside = FALSE;
     game->blackCanCastleQueenside = FALSE;
 
     game->canEnPassent = FALSE;
+    game->enPassentX = 0;
+    game->enPassentY = 0;
 
     game->halfMoveClock = 0;
 

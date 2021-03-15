@@ -8,6 +8,7 @@
 
 #include "game.c"
 #include "fen.c"
+#include "ai.c"
 
 Game game;
 
@@ -254,13 +255,9 @@ void mouseClick(int button, int state, int x, int y){
 
                     if(x1 < mouse_x && mouse_x < x2 && y1 < mouse_y && mouse_y < y2){
                         if(x != selected_x || y != selected_y){
-                            Move move;
-                            move.fromX = selected_x;
-                            move.fromY = selected_y;
-                            move.toX = x;
-                            move.toY = y;
-                            if(tryMove(&game, move)){
+                            if(tryMove(&game, (Move){selected_x, selected_y, x, y, QUEEN})){
                                 alSourcePlay(pieceMove);
+                                tryMove(&game, maxMove(&game, BLACK, 3).move);
                             }
                         }
                     }
