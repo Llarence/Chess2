@@ -50,6 +50,30 @@ typedef struct Move{
     int promotion;
 } Move;
 
+void clearGame(Game *game){
+    for(int x = 0; x < 8; x++){
+        for(int y = 0; y < 8; y++){
+            game->board[x][y].type = NONE;
+            game->board[x][y].color = WHITE;
+        }
+    }
+
+    game->turn = WHITE;
+
+    game->whiteCanCastleKingside = FALSE;
+    game->whiteCanCastleQueenside = FALSE;
+    game->blackCanCastleKingside = FALSE;
+    game->blackCanCastleQueenside = FALSE;
+
+    game->canEnPassent = FALSE;
+    game->enPassentX = 0;
+    game->enPassentY = 0;
+
+    game->halfMoveClock = 0;
+
+    game->moves = 0;
+}
+
 Game copyGame(Game *game){
     Game newGame;
 
@@ -141,12 +165,12 @@ void doMove(Game *game, Move move){
             game->blackCanCastleQueenside = FALSE;
 
             if(deltaX == 2){
-                game->board[5][7] = game->board[7][0];
+                game->board[5][7] = game->board[7][7];
                 game->board[7][7].type = NONE;
             }
 
             if(deltaX == -2){
-                game->board[3][7] = game->board[7][0];
+                game->board[3][7] = game->board[7][7];
                 game->board[0][7].type = NONE;
             }
         }
@@ -584,7 +608,7 @@ void generateLegalMoves(Game *game, Move *moves){
 }
 
 int isOver(Game *game){
-    Move moves[512];
+    Move moves[512] = {0};
     generateLegalMoves(game, moves);
     if(moves->fromX == -1){
 

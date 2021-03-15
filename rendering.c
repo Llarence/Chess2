@@ -5,6 +5,7 @@
 #include <SOIL/SOIL.h>
 #include <AL/al.h>
 #include <AL/alc.h>
+#include <pthread.h> 
 
 #include "game.c"
 #include "fen.c"
@@ -22,6 +23,8 @@ float mouse_y;
 int holding_selected;
 int selected_x;
 int selected_y;
+
+int aiMoved = TRUE;
 
 void createSounds(){
 
@@ -194,11 +197,20 @@ void mouseMove(int x, int y){
     render();
 }
 
+void *aiThread(void *args){
+    if(tryMove(&game, maxMove(&game, BLACK, 4).move)){
+        aiMoved = TRUE;
+        alSourcePlay(pieceMove);
+    }
+
+    return NULL;
+}
+
 void mouseClick(int button, int state, int x, int y){
     mouse_x = ((x / (float)glutGet(GLUT_WINDOW_WIDTH)) * 2.0) - 1.0;
     mouse_y = (1 - (y / (float)glutGet(GLUT_WINDOW_HEIGHT)) * 2.0);
 
-    if(button == GLUT_LEFT_BUTTON){
+    if(button == GLUT_LEFT_BUTTON && game.turn == WHITE){
         int width = glutGet(GLUT_WINDOW_WIDTH);
         int height = glutGet(GLUT_WINDOW_HEIGHT);
         
@@ -257,7 +269,9 @@ void mouseClick(int button, int state, int x, int y){
                         if(x != selected_x || y != selected_y){
                             if(tryMove(&game, (Move){selected_x, selected_y, x, y, QUEEN})){
                                 alSourcePlay(pieceMove);
-                                tryMove(&game, maxMove(&game, BLACK, 3).move);
+                                pthread_t threadID;
+                                pthread_create(&threadID, NULL, aiThread, NULL);
+                                aiMoved = FALSE;
                             }
                         }
                     }
@@ -286,6 +300,13 @@ void initSound(){
     alSourcei(pieceMove, AL_BUFFER, buffer);
 }
 
+void checkAI(){
+    if(aiMoved == TRUE){
+        render();
+        aiMoved = FALSE;
+    }
+}
+
 void initWindow(){
     initGame(&game);
 
@@ -305,6 +326,7 @@ void initWindow(){
     glutDisplayFunc(render);
     glutMouseFunc(mouseClick);
     glutMotionFunc(mouseMove);
+    glutIdleFunc(checkAI);
     atexit(onExit);
 
     glutMainLoop();

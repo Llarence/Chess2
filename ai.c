@@ -92,7 +92,7 @@ ValuedMove minMove(Game *game, int color, int depth){
         return (ValuedMove){eval(game, color), (Move){-1, -1, -1, -1, -1}};
     }
 
-    Move moves[512];
+    Move moves[512] = {0};
     generateLegalMoves(game, moves);
     if(moves->fromX == -1){
         return (ValuedMove){eval(game, color), (Move){-1, -1, -1, -1, -1}};
@@ -122,7 +122,7 @@ ValuedMove maxMove(Game *game, int color, int depth){
         return (ValuedMove){eval(game, color), (Move){-1, -1, -1, -1, -1}};
     }
 
-    Move moves[512];
+    Move moves[512] = {0};
     generateLegalMoves(game, moves);
     if(moves->fromX == -1){
         return (ValuedMove){eval(game, color), (Move){-1, -1, -1, -1, -1}};
