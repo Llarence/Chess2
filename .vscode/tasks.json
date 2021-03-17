@@ -7,7 +7,6 @@
 			"command": "/usr/bin/g++",
 			"args": [
 				"main.c",
-				"-lpthread",
 				"-O3",
 				"-lglut",
 				"-lGLU",
@@ -15,7 +14,7 @@
 				"-lSOIL",
 				"-lopenal",
 				"-lalut",
-				"-std=c++17"
+				"-lpthread",
 			],
 			"options": {
 				"cwd": "${workspaceFolder}"

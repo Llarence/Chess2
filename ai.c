@@ -4,25 +4,20 @@
 #include <stdlib.h>
 
 #include "game.c"
-
-const int PAWN_VALUE = 100;
-const int KNIGHT_VALUE = 300;
-const int BISHOP_VALUE = 300;
-const int ROOK_VALUE = 600;
-const int QUEEN_VALUE = 900;
+#include "values.c"
 
 typedef struct ValuedMove{
     int value;
     Move move;
 } ValuedMove;
 
-int eval(Game *game, int color){
+int eval(Game *game, int color, int depth){
     int over = isOver(game);
     if(over == CHECKMATE){
         if(game->turn == color){
-            return 100000;
+            return 100000 + (depth * 10000);
         }else{
-            return -100000;
+            return -100000 - (depth * 10000);
         }
     }
 
@@ -38,64 +33,138 @@ int eval(Game *game, int color){
                 switch(piece.type){
                     case PAWN:
                         value += PAWN_VALUE;
+                        if(piece.color == WHITE){
+                            value += WHITE_PAWN_TABLE[y][x];
+                        }else{
+                            value += BLACK_PAWN_TABLE[y][x];
+                        }
+
                         break;
                     
                     case KNIGHT:
                         value += KNIGHT_VALUE;
+                        if(piece.color == WHITE){
+                            value += WHITE_KNIGHT_TABLE[y][x];
+                        }else{
+                            value += BLACK_KNIGHT_TABLE[y][x];
+                        }
+
                         break;
 
                     case BISHOP:
                         value += BISHOP_VALUE;
+                        if(piece.color == WHITE){
+                            value += WHITE_BISHOP_TABLE[y][x];
+                        }else{
+                            value += BLACK_BISHOP_TABLE[y][x];
+                        }
+
                         break;
 
                     case ROOK:
                         value += ROOK_VALUE;
+                        if(piece.color == WHITE){
+                            value += WHITE_ROOK_TABLE[y][x];
+                        }else{
+                            value += BLACK_ROOK_TABLE[y][x];
+                        }
+
                         break;
                     
                     case QUEEN:
                         value += QUEEN_VALUE;
+                        if(piece.color == WHITE){
+                            value += WHITE_QUEEN_TABLE[y][x];
+                        }else{
+                            value += BLACK_QUEEN_TABLE[y][x];
+                        }
+
                         break;
+                    
+                    case KING:
+                        if(piece.color == WHITE){
+                            value += WHITE_KING_TABLE[y][x];
+                        }else{
+                            value += BLACK_KING_TABLE[y][x];
+                        }
                 }
             }else{
                 switch(piece.type){
                     case PAWN:
                         value -= PAWN_VALUE;
+                        if(piece.color == WHITE){
+                            value -= WHITE_PAWN_TABLE[y][x];
+                        }else{
+                            value -= BLACK_PAWN_TABLE[y][x];
+                        }
+
                         break;
                     
                     case KNIGHT:
                         value -= KNIGHT_VALUE;
+                        if(piece.color == WHITE){
+                            value -= WHITE_KNIGHT_TABLE[y][x];
+                        }else{
+                            value -= BLACK_KNIGHT_TABLE[y][x];
+                        }
+
                         break;
 
                     case BISHOP:
                         value -= BISHOP_VALUE;
+                        if(piece.color == WHITE){
+                            value -= WHITE_BISHOP_TABLE[y][x];
+                        }else{
+                            value -= BLACK_BISHOP_TABLE[y][x];
+                        }
+
                         break;
 
                     case ROOK:
                         value -= ROOK_VALUE;
+                        if(piece.color == WHITE){
+                            value -= WHITE_ROOK_TABLE[y][x];
+                        }else{
+                            value -= BLACK_ROOK_TABLE[y][x];
+                        }
+
                         break;
                     
                     case QUEEN:
                         value -= QUEEN_VALUE;
+                        if(piece.color == WHITE){
+                            value -= WHITE_QUEEN_TABLE[y][x];
+                        }else{
+                            value -= BLACK_QUEEN_TABLE[y][x];
+                        }
+
                         break;
+                    
+                    case KING:
+                        if(piece.color == WHITE){
+                            value -= WHITE_KING_TABLE[y][x];
+                        }else{
+                            value -= BLACK_KING_TABLE[y][x];
+                        }
                 }
             }
         }
     }
 
-    return value + rand() % 10;
+    return value;
 }
 
-ValuedMove maxMove(Game *game, int color, int depth);
+ValuedMove maxMove(Game *game, int color, int alpha, int beta, int depth);
 
-ValuedMove minMove(Game *game, int color, int depth){
+ValuedMove minMove(Game *game, int color, int alpha, int beta, int depth){
     if(depth == 0){
-        return (ValuedMove){eval(game, color), (Move){-1, -1, -1, -1, -1}};
+        return (ValuedMove){eval(game, color, depth), (Move){-1, -1, -1, -1, -1}};
     }
 
-    Move moves[512] = {0};
+    Move moves[512];
     generateLegalMoves(game, moves);
     if(moves->fromX == -1){
-        return (ValuedMove){eval(game, color), (Move){-1, -1, -1, -1, -1}};
+        return (ValuedMove){eval(game, color, depth), (Move){-1, -1, -1, -1, -1}};
     }
 
     ValuedMove best = {1000000, (Move){-1, -1, -1, -1, -1}};
@@ -106,26 +175,33 @@ ValuedMove minMove(Game *game, int color, int depth){
         
         Game newGame = copyGame(game);
         doMove(&newGame, moves[i]);
-        ValuedMove curr = maxMove(&newGame, color, depth - 1);
+        ValuedMove curr = maxMove(&newGame, color, alpha, beta, depth - 1);
 
         if(curr.value < best.value){
             best.move = moves[i];
             best.value = curr.value;
+            if(beta > curr.value){
+                beta = curr.value;
+            }
+        }
+
+        if(alpha >= beta){
+            break;
         }
     }
 
     return best;
 }
 
-ValuedMove maxMove(Game *game, int color, int depth){
+ValuedMove maxMove(Game *game, int color, int alpha, int beta, int depth){
     if(depth == 0){
-        return (ValuedMove){eval(game, color), (Move){-1, -1, -1, -1, -1}};
+        return (ValuedMove){eval(game, color, depth), (Move){-1, -1, -1, -1, -1}};
     }
 
-    Move moves[512] = {0};
+    Move moves[512];
     generateLegalMoves(game, moves);
     if(moves->fromX == -1){
-        return (ValuedMove){eval(game, color), (Move){-1, -1, -1, -1, -1}};
+        return (ValuedMove){eval(game, color, depth), (Move){-1, -1, -1, -1, -1}};
     }
 
     ValuedMove best = {-1000000, (Move){-1, -1, -1, -1, -1}};
@@ -136,11 +212,18 @@ ValuedMove maxMove(Game *game, int color, int depth){
 
         Game newGame = copyGame(game);
         doMove(&newGame, moves[i]);
-        ValuedMove curr = minMove(&newGame, color, depth - 1);
+        ValuedMove curr = minMove(&newGame, color, alpha, beta, depth - 1);
 
         if(curr.value > best.value){
             best.move = moves[i];
             best.value = curr.value;
+            if(alpha < curr.value){
+                alpha = curr.value;
+            }
+        }
+
+        if(alpha >= beta){
+            break;
         }
     }
 

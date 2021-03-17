@@ -120,13 +120,13 @@ void renderGame(){
             move.toX = x;
             move.toY = y;
             if(!holding_selected || !isLegal(&game, move)){
-                if((x + y) % 2 == 0){
+                if((x + y) % 2 == 1){
                     glColor3ub(0xF2, 0xB8, 0x85);
                 }else{
                     glColor3ub(0xB3, 0x65, 0x2E);
                 }
             }else{
-                if((x + y) % 2 == 0){
+                if((x + y) % 2 == 1){
                     glColor3ub(0xE2, 0x5C, 0x43);
                 }else{
                     glColor3ub(0xE2, 0x33, 0x17);
@@ -198,7 +198,8 @@ void mouseMove(int x, int y){
 }
 
 void *aiThread(void *args){
-    if(tryMove(&game, maxMove(&game, BLACK, 4).move)){
+    ValuedMove valuedMove = maxMove(&game, BLACK, -1000000, 1000000, 4);
+    if(tryMove(&game, valuedMove.move)){
         aiMoved = TRUE;
         alSourcePlay(pieceMove);
     }

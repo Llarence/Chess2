@@ -176,24 +176,20 @@ void doMove(Game *game, Move move){
         }
     }
 
-    if(piece.type == ROOK){
-        if(piece.color == WHITE){
-            if(move.fromX == 7){
-                game->whiteCanCastleKingside = FALSE;
-            }
+    if(move.fromX == 7 && move.fromY == 0){
+        game->whiteCanCastleKingside = FALSE;
+    }
 
-            if(move.fromX == 0){
-                game->whiteCanCastleQueenside = FALSE;
-            }
-        }else{
-            if(move.fromX == 7){
-                game->blackCanCastleKingside = FALSE;
-            }
+    if(move.fromX == 0 && move.fromY == 0){
+        game->whiteCanCastleQueenside = FALSE;
+    }
 
-            if(move.fromX == 0){
-                game->blackCanCastleQueenside = FALSE;
-            }
-        }
+    if(move.fromX == 7 && move.fromY == 7){
+        game->blackCanCastleKingside = FALSE;
+    }
+
+    if(move.fromX == 0 && move.fromY == 7){
+        game->blackCanCastleQueenside = FALSE;
     }
 
     if(piece.type == PAWN){
@@ -523,45 +519,62 @@ int isPsuedoLegal(Game *game, Move move){
 
                 if(piece.color == WHITE){
                     if(game->whiteCanCastleKingside && deltaX == 2 && deltaY == 0){
-                        if(game->board[move.fromX + 1][move.fromY].type == NONE){
+                        if(game->board[move.fromX + 1][move.fromY].type == NONE && game->board[move.toX][move.toY].type == NONE){
                             Game newGame = copyGame(game);
         
                             doMove(&newGame, (Move){move.fromX, move.fromY, move.fromX + 1, move.fromY, 0});
                             if(!isAttacked(&newGame, (Piece){KING, WHITE})){
-                                return TRUE;
+                                newGame = copyGame(game);
+                                newGame.turn = BLACK;
+                                if(!isAttacked(&newGame, (Piece){KING, WHITE})){
+                                    return TRUE;
+                                }
                             }
                         }
                     }
 
                     if(game->whiteCanCastleQueenside && deltaX == -2 && deltaY == 0){
-                        if(game->board[move.fromX - 1][move.fromY].type == NONE){
+                        if(game->board[move.fromX - 1][move.fromY].type == NONE && game->board[move.toX][move.toY].type == NONE && game->board[move.fromX - 3][move.fromY].type == NONE){
                             Game newGame = copyGame(game);
         
-                            doMove(&newGame, (Move){move.fromX, move.fromY, move.fromX - 1, move.fromY, 0});
+                            doMove(&newGame, (Move){move.fromX, move.fromY, move.fromX + 1, move.fromY, 0});
                             if(!isAttacked(&newGame, (Piece){KING, WHITE})){
-                                return TRUE;
+                                newGame = copyGame(game);
+                                newGame.turn = BLACK;
+                                if(!isAttacked(&newGame, (Piece){KING, WHITE})){
+                                    return TRUE;
+                                }
                             }
                         }
                     }
                 }else{
                     if(game->blackCanCastleKingside && deltaX == 2 && deltaY == 0){
-                        if(game->board[move.fromX + 1][move.fromY].type == NONE){
+                        if(game->board[move.fromX + 1][move.fromY].type == NONE && game->board[move.toX][move.toY].type == NONE){
                             Game newGame = copyGame(game);
         
-                            doMove(&newGame, (Move){move.fromX, move.fromY, move.fromX - 1, move.fromY, 0});
-                            if(!isAttacked(&newGame, (Piece){KING, WHITE})){
-                                return TRUE;
+                            doMove(&newGame, (Move){move.fromX, move.fromY, move.fromX + 1, move.fromY, 0});
+                            if(!isAttacked(&newGame, (Piece){KING, BLACK})){
+                                newGame = copyGame(game);
+                                newGame.turn = WHITE;
+                                doMove(&newGame, (Move){move.fromX, move.fromY, move.fromX, move.fromY, 0});
+                                if(!isAttacked(&newGame, (Piece){KING, BLACK})){
+                                    return TRUE;
+                                }
                             }
                         }
                     }
 
                     if(game->blackCanCastleQueenside && deltaX == -2 && deltaY == 0){
-                        if(game->board[move.fromX - 1][move.fromY].type == NONE){
+                        if(game->board[move.fromX - 1][move.fromY].type == NONE && game->board[move.toX][move.toY].type == NONE && game->board[move.fromX - 3][move.fromY].type == NONE){
                             Game newGame = copyGame(game);
         
-                            doMove(&newGame, (Move){move.fromX, move.fromY, move.fromX - 1, move.fromY, 0});
-                            if(!isAttacked(&newGame, (Piece){KING, WHITE})){
-                                return TRUE;
+                            doMove(&newGame, (Move){move.fromX, move.fromY, move.fromX + 1, move.fromY, 0});
+                            if(!isAttacked(&newGame, (Piece){KING, BLACK})){
+                                newGame = copyGame(game);
+                                newGame.turn = WHITE;
+                                if(!isAttacked(&newGame, (Piece){KING, BLACK})){
+                                    return TRUE;
+                                }
                             }
                         }
                     }
@@ -608,15 +621,24 @@ void generateLegalMoves(Game *game, Move *moves){
 }
 
 int isOver(Game *game){
-    Move moves[512] = {0};
+    Move moves[512];
     generateLegalMoves(game, moves);
-    if(moves->fromX == -1){
-
-        if(isAttacked(game, (Piece){KING, game->turn})){
-            return CHECKMATE;
+    if(moves[0].fromX == -1){
+        int orginalTurn = game->turn;
+        
+        if(game->turn == WHITE){
+            game->turn = BLACK;
+        }else{
+            game->turn = WHITE;
         }
 
-        return STALEMATE;
+        if(isAttacked(game, (Piece){KING, orginalTurn})){
+            return CHECKMATE;
+        }else{
+            return STALEMATE;
+        }
+
+        game->turn = orginalTurn;
     }
     
     return FALSE;
