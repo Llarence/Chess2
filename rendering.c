@@ -17,12 +17,17 @@ GLuint texture;
 
 ALuint pieceMove;
 
-float mouse_x;
-float mouse_y;
+float mouseX;
+float mouseY;
 
 int holding_selected;
-int selected_x;
-int selected_y;
+int selectedX;
+int selectedY;
+
+int prevX1 = -1;
+int prevY1;
+int prevX2 = -1;
+int prevY2;
 
 int aiMoved = TRUE;
 
@@ -114,22 +119,25 @@ void renderGame(){
 
     for(int x = 0; x < 8; x++){
         for(int y = 0; y < 8; y++){
-            Move move;
-            move.fromX = selected_x;
-            move.fromY = selected_y;
-            move.toX = x;
-            move.toY = y;
-            if(!holding_selected || !isLegal(&game, move)){
-                if((x + y) % 2 == 1){
-                    glColor3ub(0xF2, 0xB8, 0x85);
-                }else{
-                    glColor3ub(0xB3, 0x65, 0x2E);
-                }
-            }else{
+            if(holding_selected && isLegal(&game, (Move){selectedX, selectedY, x, y, QUEEN})){
                 if((x + y) % 2 == 1){
                     glColor3ub(0xE2, 0x5C, 0x43);
                 }else{
                     glColor3ub(0xE2, 0x33, 0x17);
+                }
+            }else{
+                if((prevX1 == x && prevY1 == y) || (prevX2 == x && prevY2 == y)){
+                    if((x + y) % 2 == 1){
+                        glColor3ub(0xE2, 0xB5, 0x00);
+                    }else{
+                        glColor3ub(0xE2, 0xA8, 0x00);
+                    }
+                }else{
+                    if((x + y) % 2 == 1){
+                        glColor3ub(0xF2, 0xB8, 0x85);
+                    }else{
+                        glColor3ub(0xB3, 0x65, 0x2E);
+                    }
                 }
             }
 
@@ -159,7 +167,7 @@ void renderGame(){
 
             glEnd();
 
-            if(!holding_selected || selected_x != x || selected_y != y){
+            if(!holding_selected || selectedX != x || selectedY != y){
                 drawPiece(game.board[x][y], x1, x2, y1, y2);
             }
         }
@@ -185,21 +193,25 @@ void render(){
     }
 
     if(holding_selected){
-        drawPiece(game.board[selected_x][selected_y], mouse_x - halfSizeX, mouse_x + halfSizeX, mouse_y - halfSizeY, mouse_y + halfSizeY);
+        drawPiece(game.board[selectedX][selectedY], mouseX - halfSizeX, mouseX + halfSizeX, mouseY - halfSizeY, mouseY + halfSizeY);
     }
 
     glFlush();
 }
 
 void mouseMove(int x, int y){
-    mouse_x = ((x / (float)glutGet(GLUT_WINDOW_WIDTH)) * 2.0) - 1.0;
-    mouse_y = (1 - (y / (float)glutGet(GLUT_WINDOW_HEIGHT)) * 2.0);
+    mouseX = ((x / (float)glutGet(GLUT_WINDOW_WIDTH)) * 2.0) - 1.0;
+    mouseY = (1 - (y / (float)glutGet(GLUT_WINDOW_HEIGHT)) * 2.0);
     render();
 }
 
 void *aiThread(void *args){
     ValuedMove valuedMove = maxMove(&game, BLACK, -1000000, 1000000, 4);
     if(tryMove(&game, valuedMove.move)){
+        prevX1 = valuedMove.move.fromX;
+        prevY1 = valuedMove.move.fromY;
+        prevX2 = valuedMove.move.toX;
+        prevY2 = valuedMove.move.toY;
         aiMoved = TRUE;
         alSourcePlay(pieceMove);
     }
@@ -208,8 +220,8 @@ void *aiThread(void *args){
 }
 
 void mouseClick(int button, int state, int x, int y){
-    mouse_x = ((x / (float)glutGet(GLUT_WINDOW_WIDTH)) * 2.0) - 1.0;
-    mouse_y = (1 - (y / (float)glutGet(GLUT_WINDOW_HEIGHT)) * 2.0);
+    mouseX = ((x / (float)glutGet(GLUT_WINDOW_WIDTH)) * 2.0) - 1.0;
+    mouseY = (1 - (y / (float)glutGet(GLUT_WINDOW_HEIGHT)) * 2.0);
 
     if(button == GLUT_LEFT_BUTTON && game.turn == WHITE){
         int width = glutGet(GLUT_WINDOW_WIDTH);
@@ -235,11 +247,11 @@ void mouseClick(int button, int state, int x, int y){
                         y2 = -3.0 / 4.0 + (y / 4.0);
                     }
 
-                    if(x1 < mouse_x && mouse_x < x2 && y1 < mouse_y && mouse_y < y2){
+                    if(x1 < mouseX && mouseX < x2 && y1 < mouseY && mouseY < y2){
                         if(game.turn == game.board[x][y].color){
                             holding_selected = TRUE;
-                            selected_x = x;
-                            selected_y = y;
+                            selectedX = x;
+                            selectedY = y;
                         }
                     }
                 }
@@ -266,9 +278,13 @@ void mouseClick(int button, int state, int x, int y){
                         y2 = -3.0 / 4.0 + (y / 4.0);
                     }
 
-                    if(x1 < mouse_x && mouse_x < x2 && y1 < mouse_y && mouse_y < y2){
-                        if(x != selected_x || y != selected_y){
-                            if(tryMove(&game, (Move){selected_x, selected_y, x, y, QUEEN})){
+                    if(x1 < mouseX && mouseX < x2 && y1 < mouseY && mouseY < y2){
+                        if(x != selectedX || y != selectedY){
+                            if(tryMove(&game, (Move){selectedX, selectedY, x, y, QUEEN})){
+                                prevX1 = selectedX;
+                                prevY1 = selectedY;
+                                prevX2 = x;
+                                prevY2 = y;
                                 alSourcePlay(pieceMove);
                                 pthread_t threadID;
                                 pthread_create(&threadID, NULL, aiThread, NULL);

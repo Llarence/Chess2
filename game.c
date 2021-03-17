@@ -269,7 +269,7 @@ int isPsuedoLegal(Game *game, Move move){
                     if(deltaY == -1){
                         if(attacked.type != NONE || (game->canEnPassent && game->enPassentX == move.toX && game->enPassentY == 2 && move.toY == 2)){
                             int deltaX = move.toX - move.fromX;
-                            if(deltaX == 1 || deltaX ==-1){
+                            if(deltaX == 1 || deltaX == -1){
                                 return TRUE;
                             }
                         }else{
@@ -556,7 +556,6 @@ int isPsuedoLegal(Game *game, Move move){
                             if(!isAttacked(&newGame, (Piece){KING, BLACK})){
                                 newGame = copyGame(game);
                                 newGame.turn = WHITE;
-                                doMove(&newGame, (Move){move.fromX, move.fromY, move.fromX, move.fromY, 0});
                                 if(!isAttacked(&newGame, (Piece){KING, BLACK})){
                                     return TRUE;
                                 }
