@@ -135,14 +135,6 @@ void doMove(Game *game, Move move){
     game->board[move.toX][move.toY] = game->board[move.fromX][move.fromY];
     game->board[move.fromX][move.fromY].type = NONE;
 
-    if(game->canEnPassent && game->enPassentX == move.toX && game->enPassentY == move.toY){
-        if(game->turn == WHITE){
-            game->board[move.toX][move.toY - 1].type = NONE;
-        }else{
-            game->board[move.toX][move.toY + 1].type = NONE;
-        }
-    }
-
     int deltaX = move.toX - move.fromX;
     int deltaY = move.toY - move.fromY;
 
@@ -193,6 +185,14 @@ void doMove(Game *game, Move move){
     }
 
     if(piece.type == PAWN){
+        if(game->canEnPassent && game->enPassentX == move.toX && game->enPassentY == move.toY){
+            if(game->turn == WHITE){
+                game->board[move.toX][move.toY - 1].type = NONE;
+            }else{
+                game->board[move.toX][move.toY + 1].type = NONE;
+            }
+        }
+
         if(deltaY == 2 || deltaY == -2){
             game->canEnPassent = TRUE;
             game->enPassentX = move.toX;

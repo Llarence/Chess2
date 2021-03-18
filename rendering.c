@@ -123,20 +123,20 @@ void renderGame(){
                 if((x + y) % 2 == 1){
                     glColor3ub(0xE2, 0x5C, 0x43);
                 }else{
-                    glColor3ub(0xE2, 0x33, 0x17);
+                    glColor3ub(0xE2, 0x43, 0x27);
                 }
             }else{
                 if((prevX1 == x && prevY1 == y) || (prevX2 == x && prevY2 == y)){
                     if((x + y) % 2 == 1){
-                        glColor3ub(0xE2, 0xB5, 0x00);
+                        glColor3ub(0xDE, 0xB5, 0x20);
                     }else{
-                        glColor3ub(0xE2, 0xA8, 0x00);
+                        glColor3ub(0xD8, 0xA8, 0x20);
                     }
                 }else{
                     if((x + y) % 2 == 1){
                         glColor3ub(0xF2, 0xB8, 0x85);
                     }else{
-                        glColor3ub(0xB3, 0x65, 0x2E);
+                        glColor3ub(0xC3, 0x75, 0x3E);
                     }
                 }
             }
