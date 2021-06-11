@@ -16,6 +16,10 @@
         "functional": "c",
         "tuple": "c",
         "type_traits": "c",
-        "*.tcc": "c"
+        "*.tcc": "c",
+        "deque": "c",
+        "string": "c",
+        "unordered_map": "c",
+        "vector": "c"
     }
 }

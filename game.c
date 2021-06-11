@@ -1,27 +1,35 @@
 #ifndef GAME
 #define GAME
 
-const int FALSE = 0;
-const int TRUE = 1;
+#define FALSE 0
+#define TRUE 1
 
-const int NONE = 0;
-const int PAWN = 1;
-const int KNIGHT = 2;
-const int BISHOP = 3;
-const int ROOK = 4;
-const int QUEEN = 5;
-const int KING = 6;
+#define NONE 0
+#define PAWN 1
+#define KNIGHT 2
+#define BISHOP 3
+#define ROOK 4
+#define QUEEN 5
+#define KING 6
 
-const int WHITE = 0;
-const int BLACK = 1;
+#define WHITE 0
+#define BLACK 1
 
-const int STALEMATE = 1;
-const int CHECKMATE = 2;
+#define STALEMATE 1
+#define CHECKMATE 2
 
 typedef struct Piece{
     int type;
     int color;
 } Piece;
+
+typedef struct Move{
+    int fromX;
+    int fromY;
+    int toX;
+    int toY;
+    int promotion;
+} Move;
 
 typedef struct Game{
     Piece board[8][8];
@@ -39,16 +47,14 @@ typedef struct Game{
 
     int halfMoveClock;
 
+    Move prevMoveWhite;
+    Move prevMoveBlack;
+    int repeatMoves;
+
+    int movesSinceCapture;
+
     int moves;
 } Game;
-
-typedef struct Move{
-    int fromX;
-    int fromY;
-    int toX;
-    int toY;
-    int promotion;
-} Move;
 
 void clearGame(Game *game){
     for(int x = 0; x < 8; x++){
@@ -70,6 +76,12 @@ void clearGame(Game *game){
     game->enPassentY = 0;
 
     game->halfMoveClock = 0;
+
+    game->prevMoveWhite.fromX = -1;
+    game->prevMoveBlack.fromX = -1;
+    game->repeatMoves = 0;
+
+    game->movesSinceCapture = 0;
 
     game->moves = 0;
 }
@@ -124,7 +136,46 @@ int isAttacked(Game *game, Piece piece){
     return FALSE;
 }
 
+int isCapture(Game *game, Move move){
+    Piece piece = game->board[move.fromX][move.fromY];
+
+    if(piece.type == PAWN){
+        if(game->canEnPassent && game->enPassentX == move.toX && game->enPassentY == move.toY){
+            return TRUE;
+        }
+    }
+
+    if(game->board[move.toX][move.toY].type != NONE){
+        return FALSE;
+    }
+    return TRUE;
+}
+
 void doMove(Game *game, Move move){
+    game->movesSinceCapture += 1;
+    int capture = isCapture(game, move);
+    if(capture){
+        game->movesSinceCapture = 0;
+    }
+
+    if(game->turn == WHITE){
+        if(capture && game->prevMoveWhite.fromX == move.fromX || game->prevMoveWhite.fromY == move.fromY || game->prevMoveWhite.toX == move.toX || game->prevMoveWhite.toY == move.toY){
+            game->repeatMoves += 1;
+        }else{
+            game->repeatMoves = 0;
+        }
+
+        game->prevMoveWhite = move;
+    }else{
+        if(capture && game->prevMoveBlack.fromX == move.fromX || game->prevMoveBlack.fromY == move.fromY || game->prevMoveBlack.toX == move.toX || game->prevMoveBlack.toY == move.toY){
+            game->repeatMoves += 1;
+        }else{
+            game->repeatMoves = 0;
+        }
+
+        game->prevMoveBlack = move;
+    }
+
     Piece piece = game->board[move.fromX][move.fromY];
     if(game->board[move.toX][move.toY].type == NONE){
         game->halfMoveClock += 1;
@@ -619,16 +670,34 @@ void generateLegalMoves(Game *game, Move *moves){
     moves[i] = (Move){-1, -1, -1, -1, -1};
 }
 
+int isMove(Game *game){
+    for(int fromX = 0; fromX < 8; fromX++){
+        for(int fromY = 0; fromY < 8; fromY++){
+            for(int toX = 0; toX < 8; toX++){
+                for(int toY = 0; toY < 8; toY++){
+                    if(isLegal(game, (Move){fromX, fromY, toX, toY, QUEEN})){
+                        return TRUE;
+                    }
+                }
+            }
+        }
+    }
+
+    return FALSE;
+}
+
 int isOver(Game *game){
-    Move moves[512];
-    generateLegalMoves(game, moves);
-    if(moves[0].fromX == -1){
+    if(!isMove(game)){
         int orginalTurn = game->turn;
         
         if(game->turn == WHITE){
             game->turn = BLACK;
         }else{
             game->turn = WHITE;
+        }
+
+        if(game->repeatMoves == 6 || game->repeatMoves == 75){
+            return STALEMATE;
         }
 
         if(isAttacked(game, (Piece){KING, orginalTurn})){
@@ -645,9 +714,11 @@ int isOver(Game *game){
 
 int tryMove(Game *game, Move move){
     if(isValidMove(move)){
-        if(isLegal(game, move)){
-            doMove(game, move);
-            return TRUE;
+        if(isOver(game)){
+            if(isLegal(game, move)){
+                doMove(game, move);
+                return TRUE;
+            }
         }
     }
 

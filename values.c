@@ -1,8 +1,13 @@
-const int PAWN_VALUE = 100;
-const int KNIGHT_VALUE = 320;
-const int BISHOP_VALUE = 330;
-const int ROOK_VALUE = 500;
-const int QUEEN_VALUE = 900;
+#define DEPTH 8
+#define MAX_DEPTH 12
+#define FULL_DEPTH 4
+#define FULL_SEARCH_NONPAWNS 8
+
+#define PAWN_VALUE 100
+#define KNIGHT_VALUE 320
+#define BISHOP_VALUE 330
+#define ROOK_VALUE 500
+#define QUEEN_VALUE 900
 
 const int WHITE_PAWN_TABLE[8][8] = 
 {{0,  0,  0,  0,  0,  0,  0,  0},

@@ -147,7 +147,7 @@ void readFen(Game *game, const char *fen){
 }
 
 void initGame(Game *game){
-    readFen(game, "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
+    readFen(game, "3qk3/8/8/8/8/8/8/4K3 w - 0 1");
 }
 
 #endif

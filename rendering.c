@@ -2,10 +2,13 @@
 #define RENDERING
 
 #include <GL/glut.h>
+#include <GL/glut.h>
+#include <GL/freeglut.h>
 #include <SOIL/SOIL.h>
 #include <AL/al.h>
 #include <AL/alc.h>
 #include <pthread.h> 
+#include <time.h>
 
 #include "game.c"
 #include "fen.c"
@@ -20,19 +23,22 @@ ALuint pieceMove;
 float mouseX;
 float mouseY;
 
-int holding_selected;
+int holding;
 int selectedX;
 int selectedY;
 
-int prevX1 = -1;
-int prevY1;
-int prevX2 = -1;
-int prevY2;
+int X1 = -1;
+int Y1;
+int X2 = -1;
+int Y2;
 
 int aiMoved = TRUE;
 
 void createSounds(){
-
+    ALuint buffer;
+    buffer = alutCreateBufferFromFile("pieceMove.wav");
+    alGenSources(1, &pieceMove);
+    alSourcei(pieceMove, AL_BUFFER, buffer);
 }
 
 void createTextures(){
@@ -113,20 +119,27 @@ void drawPiece(Piece piece, float x1, float x2, float y1, float y2){
     }
 }
 
+void renderText(){
+    glColor3f(0, 0, 0); 
+    glRasterPos2f(0, 0);
+
+    glutBitmapString(GLUT_BITMAP_TIMES_ROMAN_24, (const unsigned char *)"Test");
+}
+
 void renderGame(){
     int width = glutGet(GLUT_WINDOW_WIDTH);
     int height = glutGet(GLUT_WINDOW_HEIGHT);
 
     for(int x = 0; x < 8; x++){
         for(int y = 0; y < 8; y++){
-            if(holding_selected && isLegal(&game, (Move){selectedX, selectedY, x, y, QUEEN})){
+            if(holding && isLegal(&game, (Move){selectedX, selectedY, x, y, QUEEN})){
                 if((x + y) % 2 == 1){
                     glColor3ub(0xE2, 0x5C, 0x43);
                 }else{
                     glColor3ub(0xE2, 0x43, 0x27);
                 }
             }else{
-                if((prevX1 == x && prevY1 == y) || (prevX2 == x && prevY2 == y)){
+                if((X1 == x && Y1 == y) || (X2 == x && Y2 == y)){
                     if((x + y) % 2 == 1){
                         glColor3ub(0xDE, 0xB5, 0x20);
                     }else{
@@ -167,7 +180,7 @@ void renderGame(){
 
             glEnd();
 
-            if(!holding_selected || selectedX != x || selectedY != y){
+            if(!holding || selectedX != x || selectedY != y){
                 drawPiece(game.board[x][y], x1, x2, y1, y2);
             }
         }
@@ -192,7 +205,7 @@ void render(){
         halfSizeY = (1.0 / 8.0);
     }
 
-    if(holding_selected){
+    if(holding){
         drawPiece(game.board[selectedX][selectedY], mouseX - halfSizeX, mouseX + halfSizeX, mouseY - halfSizeY, mouseY + halfSizeY);
     }
 
@@ -200,18 +213,22 @@ void render(){
 }
 
 void mouseMove(int x, int y){
-    mouseX = ((x / (float)glutGet(GLUT_WINDOW_WIDTH)) * 2.0) - 1.0;
-    mouseY = (1 - (y / (float)glutGet(GLUT_WINDOW_HEIGHT)) * 2.0);
-    render();
+    if(!aiMoved){
+        mouseX = ((x / (float)glutGet(GLUT_WINDOW_WIDTH)) * 2.0) - 1.0;
+        mouseY = (1.0 - (y / (float)glutGet(GLUT_WINDOW_HEIGHT)) * 2.0);
+        render();
+    }
 }
 
+//thread priority
 void *aiThread(void *args){
-    ValuedMove valuedMove = maxMove(&game, BLACK, -1000000, 1000000, 4);
-    if(tryMove(&game, valuedMove.move)){
-        prevX1 = valuedMove.move.fromX;
-        prevY1 = valuedMove.move.fromY;
-        prevX2 = valuedMove.move.toX;
-        prevY2 = valuedMove.move.toY;
+    Move move = getAIMove(&game);
+    if(tryMove(&game, move)){
+        X1 = move.fromX;
+        Y1 = move.fromY;
+        X2 = move.toX;
+        Y2 = move.toY;
+
         aiMoved = TRUE;
         alSourcePlay(pieceMove);
     }
@@ -220,86 +237,90 @@ void *aiThread(void *args){
 }
 
 void mouseClick(int button, int state, int x, int y){
-    mouseX = ((x / (float)glutGet(GLUT_WINDOW_WIDTH)) * 2.0) - 1.0;
-    mouseY = (1 - (y / (float)glutGet(GLUT_WINDOW_HEIGHT)) * 2.0);
+    if(!aiMoved){
+        mouseX = ((x / (float)glutGet(GLUT_WINDOW_WIDTH)) * 2.0) - 1.0;
+        mouseY = (1.0 - (y / (float)glutGet(GLUT_WINDOW_HEIGHT)) * 2.0);
 
-    if(button == GLUT_LEFT_BUTTON && game.turn == WHITE){
-        int width = glutGet(GLUT_WINDOW_WIDTH);
-        int height = glutGet(GLUT_WINDOW_HEIGHT);
-        
-        if(state == GLUT_DOWN) {
-            for(int x = 0; x < 8; x++){
-                for(int y = 0; y < 8; y++){
-                    float x1;
-                    float x2;
-                    float y1;
-                    float y2;
+        if(button == GLUT_LEFT_BUTTON){
+            int width = glutGet(GLUT_WINDOW_WIDTH);
+            int height = glutGet(GLUT_WINDOW_HEIGHT);
+            
+            if(state == GLUT_DOWN) {
+                for(int x = 0; x < 8; x++){
+                    for(int y = 0; y < 8; y++){
+                        float x1;
+                        float x2;
+                        float y1;
+                        float y2;
 
-                    if(width < height){
-                        x1 = -1.0 + (x / 4.0);
-                        x2 = -3.0 / 4.0 + (x / 4.0);
-                        y1 = (-1.0 + (y / 4.0)) / (height / (float)width);
-                        y2 = (-3.0 / 4.0 + (y / 4.0)) / (height / (float)width);
-                    }else{
-                        x1 = (-1.0 + (x / 4.0)) / (width / (float)height);
-                        x2 = (-3.0 / 4.0 + (x / 4.0)) / (width / (float)height);
-                        y1 = -1.0 + (y / 4.0);
-                        y2 = -3.0 / 4.0 + (y / 4.0);
-                    }
-
-                    if(x1 < mouseX && mouseX < x2 && y1 < mouseY && mouseY < y2){
-                        if(game.turn == game.board[x][y].color){
-                            holding_selected = TRUE;
-                            selectedX = x;
-                            selectedY = y;
+                        if(width < height){
+                            x1 = -1.0 + (x / 4.0);
+                            x2 = -3.0 / 4.0 + (x / 4.0);
+                            y1 = (-1.0 + (y / 4.0)) / (height / (float)width);
+                            y2 = (-3.0 / 4.0 + (y / 4.0)) / (height / (float)width);
+                        }else{
+                            x1 = (-1.0 + (x / 4.0)) / (width / (float)height);
+                            x2 = (-3.0 / 4.0 + (x / 4.0)) / (width / (float)height);
+                            y1 = -1.0 + (y / 4.0);
+                            y2 = -3.0 / 4.0 + (y / 4.0);
                         }
-                    }
-                }
-            }
-        }
 
-        if(state == GLUT_UP) {
-            for(int x = 0; x < 8; x++){
-                for(int y = 0; y < 8; y++){
-                    float x1;
-                    float x2;
-                    float y1;
-                    float y2;
-
-                    if(width < height){
-                        x1 = -1.0 + (x / 4.0);
-                        x2 = -3.0 / 4.0 + (x / 4.0);
-                        y1 = (-1.0 + (y / 4.0)) / (height / (float)width);
-                        y2 = (-3.0 / 4.0 + (y / 4.0)) / (height / (float)width);
-                    }else{
-                        x1 = (-1.0 + (x / 4.0)) / (width / (float)height);
-                        x2 = (-3.0 / 4.0 + (x / 4.0)) / (width / (float)height);
-                        y1 = -1.0 + (y / 4.0);
-                        y2 = -3.0 / 4.0 + (y / 4.0);
-                    }
-
-                    if(x1 < mouseX && mouseX < x2 && y1 < mouseY && mouseY < y2){
-                        if(x != selectedX || y != selectedY){
-                            if(tryMove(&game, (Move){selectedX, selectedY, x, y, QUEEN})){
-                                prevX1 = selectedX;
-                                prevY1 = selectedY;
-                                prevX2 = x;
-                                prevY2 = y;
-                                alSourcePlay(pieceMove);
-                                pthread_t threadID;
-                                pthread_create(&threadID, NULL, aiThread, NULL);
-                                aiMoved = FALSE;
+                        if(x1 < mouseX && mouseX < x2 && y1 < mouseY && mouseY < y2){
+                            if(game.turn == game.board[x][y].color){
+                                holding = TRUE;
+                                selectedX = x;
+                                selectedY = y;
                             }
                         }
                     }
                 }
             }
 
-            holding_selected = FALSE;
+            if(state == GLUT_UP) {
+                for(int x = 0; x < 8; x++){
+                    for(int y = 0; y < 8; y++){
+                        float x1;
+                        float x2;
+                        float y1;
+                        float y2;
+
+                        if(width < height){
+                            x1 = -1.0 + (x / 4.0);
+                            x2 = -3.0 / 4.0 + (x / 4.0);
+                            y1 = (-1.0 + (y / 4.0)) / (height / (float)width);
+                            y2 = (-3.0 / 4.0 + (y / 4.0)) / (height / (float)width);
+                        }else{
+                            x1 = (-1.0 + (x / 4.0)) / (width / (float)height);
+                            x2 = (-3.0 / 4.0 + (x / 4.0)) / (width / (float)height);
+                            y1 = -1.0 + (y / 4.0);
+                            y2 = -3.0 / 4.0 + (y / 4.0);
+                        }
+
+                        if(x1 < mouseX && mouseX < x2 && y1 < mouseY && mouseY < y2){
+                            if(x != selectedX || y != selectedY){
+                                if(tryMove(&game, (Move){selectedX, selectedY, x, y, QUEEN})){
+                                    X1 = selectedX;
+                                    Y1 = selectedY;
+                                    X2 = x;
+                                    Y2 = y;
+
+                                    alSourcePlay(pieceMove);
+
+                                    aiMoved = FALSE;
+                                    pthread_t threadID;
+                                    pthread_create(&threadID, NULL, aiThread, NULL);
+                                }
+                            }
+                        }
+                    }
+                }
+
+                holding = FALSE;
+            }
         }
+        
+        render();
     }
-    
-    render();
 }
 
 void onExit(){
@@ -311,10 +332,7 @@ void initSound(){
     char *argv[0];
     alutInit(&argc, argv);
 
-    ALuint buffer;
-    buffer = alutCreateBufferFromFile("pieceMove.wav");
-    alGenSources(1, &pieceMove);
-    alSourcei(pieceMove, AL_BUFFER, buffer);
+    createSounds();
 }
 
 void checkAI(){

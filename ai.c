@@ -2,9 +2,15 @@
 #define AI
 
 #include <stdlib.h>
+#include <math.h>
 
 #include "game.c"
 #include "values.c"
+
+typedef struct ValuedMoveSet{
+    int value;
+    Move *moves;
+} ValuedMoveSet;
 
 typedef struct ValuedMove{
     int value;
@@ -151,31 +157,93 @@ int eval(Game *game, int color, int depth){
         }
     }
 
+    if(color == WHITE){
+        if(game->blackCanCastleKingside){
+            value -= 10;
+        }
+        if(game->blackCanCastleQueenside){
+            value -= 10;
+        }
+        if(game->whiteCanCastleKingside){
+            value += 10;
+        }
+        if(game->whiteCanCastleQueenside){
+            value += 10;
+        }
+    }else{
+        if(game->blackCanCastleKingside){
+            value += 10;
+        }
+        if(game->blackCanCastleQueenside){
+            value += 10;
+        }
+        if(game->whiteCanCastleKingside){
+            value -= 10;
+        }
+        if(game->whiteCanCastleQueenside){
+            value -= 10;
+        }
+    }
+
     return value;
 }
 
-ValuedMove maxMove(Game *game, int color, int alpha, int beta, int depth);
+int nonPawns(Game *game){
+    int value = 0;
 
-ValuedMove minMove(Game *game, int color, int alpha, int beta, int depth){
-    if(depth == 0){
+    for(int x = 0; x < 8; x++){
+        for(int y = 0; y < 8; y++){
+            int type = game->board[x][y].type;
+            if(type != NONE || type != PAWN){
+                value += 1;
+            }
+        }
+    }
+
+    return value;
+}
+
+int extend(Game *game, Game *newGame, int depth){
+    int nonPawnsNew = nonPawns(newGame);
+    if(depth == DEPTH && nonPawnsNew <= FULL_SEARCH_NONPAWNS){
+        return MAX_DEPTH;
+    }
+
+    int nonPawnsOld = nonPawns(game);
+
+    if(nonPawnsOld > nonPawnsNew){
+        return 1;
+    }else{
+        return -1;
+    }
+
+    return 0;
+}
+
+ValuedMove maxMove(Game *game, int color, int alpha, int beta, int depth, int extensions);
+
+ValuedMove minMove(Game *game, int color, int alpha, int beta, int depth, int extensions){
+    if(depth <= -extensions){
+        int value = eval(game, color, depth);
         return (ValuedMove){eval(game, color, depth), (Move){-1, -1, -1, -1, -1}};
     }
 
-    Move moves[512];
+    Move moves[218];
     generateLegalMoves(game, moves);
     if(moves->fromX == -1){
         return (ValuedMove){eval(game, color, depth), (Move){-1, -1, -1, -1, -1}};
     }
 
     ValuedMove best = {1000000, (Move){-1, -1, -1, -1, -1}};
-    for(int i = 0; i < 512; i++){
+    for(int i = 0; i < 218; i++){
         if(moves[i].fromX == -1){
             break;
         }
         
         Game newGame = copyGame(game);
         doMove(&newGame, moves[i]);
-        ValuedMove curr = maxMove(&newGame, color, alpha, beta, depth - 1);
+
+        ValuedMove curr = maxMove(&newGame, color, alpha, beta, depth - 1, extensions + extend(game, &newGame, depth));
 
         if(curr.value < best.value){
             best.move = moves[i];
@@ -193,26 +261,28 @@ ValuedMove minMove(Game *game, int color, int alpha, int beta, int depth){
     return best;
 }
 
-ValuedMove maxMove(Game *game, int color, int alpha, int beta, int depth){
-    if(depth == 0){
-        return (ValuedMove){eval(game, color, depth), (Move){-1, -1, -1, -1, -1}};
+ValuedMove maxMove(Game *game, int color, int alpha, int beta, int depth, int extensions){
+    if(!(DEPTH - FULL_DEPTH <= depth) && depth <= -extensions && depth != MAX_DEPTH){
+        int value = eval(game, color, depth);
+        return (ValuedMove){value, (Move){-1, -1, -1, -1, -1}};
     }
 
-    Move moves[512];
+    Move moves[218];
     generateLegalMoves(game, moves);
     if(moves->fromX == -1){
         return (ValuedMove){eval(game, color, depth), (Move){-1, -1, -1, -1, -1}};
     }
 
     ValuedMove best = {-1000000, (Move){-1, -1, -1, -1, -1}};
-    for(int i = 0; i < 512; i++){
+    for(int i = 0; i < 218; i++){
         if(moves[i].fromX == -1){
             break;
         }
 
         Game newGame = copyGame(game);
         doMove(&newGame, moves[i]);
-        ValuedMove curr = minMove(&newGame, color, alpha, beta, depth - 1);
+
+        ValuedMove curr = minMove(&newGame, color, alpha, beta, depth - 1, extensions + extend(game, &newGame, depth));
 
         if(curr.value > best.value){
             best.move = moves[i];
@@ -228,6 +298,10 @@ ValuedMove maxMove(Game *game, int color, int alpha, int beta, int depth){
     }
 
     return best;
+}
+
+Move getAIMove(Game *game){
+    return maxMove(game, game->turn, -1000000, 1000000, DEPTH, 0).move;
 }
 
 #endif
