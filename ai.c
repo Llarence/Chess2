@@ -18,7 +18,7 @@ typedef struct ValuedMove{
 } ValuedMove;
 
 int eval(Game *game, int color, int depth){
-    int over = isOver(game);
+    int over = isOver(game, FALSE);
     if(over == CHECKMATE){
         if(game->turn == color){
             return 100000 + (depth * 10000);
@@ -203,34 +203,56 @@ int nonPawns(Game *game){
     return value;
 }
 
-int extend(Game *game, Game *newGame, int depth){
-    int nonPawnsNew = nonPawns(newGame);
-    if(depth == DEPTH && nonPawnsNew <= FULL_SEARCH_NONPAWNS){
-        return MAX_DEPTH;
+int isNonPawnCapture(Game *game, Move move){
+    Piece piece = game->board[move.fromX][move.fromY];
+
+    if(piece.type == PAWN){
+        if(game->canEnPassent && game->enPassentX == move.toX && game->enPassentY == move.toY){
+            if(game->turn == WHITE){
+                if(game->board[move.toX][move.toY - 1].type != PAWN){
+                    return TRUE;
+                }
+            }else{
+                if(game->board[move.toX][move.toY - 1].type != PAWN){
+                    return TRUE;
+                }
+            }
+        }
+
+        return FALSE;
     }
 
-    int nonPawnsOld = nonPawns(game);
+    if(game->board[move.toX][move.toY].type != NONE || game->board[move.toX][move.toY].type != PAWN){
+        return TRUE;
+    }
 
-    if(nonPawnsOld > nonPawnsNew){
+    return FALSE;
+}
+
+int extend(Game *game, Game *newGame, Move move, int depth){
+    int nonPawnsNew = nonPawns(newGame);
+    if(depth == DEPTH && nonPawnsNew <= FULL_SEARCH_NONPAWNS){
+        return MAX_DEPTH * 3;
+    }
+
+    if(isNonPawnCapture(game, move)){
         return 1;
     }else{
         return -1;
     }
-
-    return 0;
 }
 
 ValuedMove maxMove(Game *game, int color, int alpha, int beta, int depth, int extensions);
 
 ValuedMove minMove(Game *game, int color, int alpha, int beta, int depth, int extensions){
-    if(depth <= -extensions){
+    if((!(DEPTH - FULL_DEPTH <= depth) && depth <= -extensions) || depth == DEPTH - MAX_DEPTH){
         int value = eval(game, color, depth);
         return (ValuedMove){eval(game, color, depth), (Move){-1, -1, -1, -1, -1}};
     }
 
     Move moves[218];
     generateLegalMoves(game, moves);
-    if(moves->fromX == -1){
+    if(moves[0].fromX == -1){
         return (ValuedMove){eval(game, color, depth), (Move){-1, -1, -1, -1, -1}};
     }
 
@@ -239,11 +261,11 @@ ValuedMove minMove(Game *game, int color, int alpha, int beta, int depth, int ex
         if(moves[i].fromX == -1){
             break;
         }
-        
+
         Game newGame = copyGame(game);
         doMove(&newGame, moves[i]);
 
-        ValuedMove curr = maxMove(&newGame, color, alpha, beta, depth - 1, extensions + extend(game, &newGame, depth));
+        ValuedMove curr = maxMove(&newGame, color, alpha, beta, depth - 1, extensions + extend(game, &newGame, moves[i], depth));
 
         if(curr.value < best.value){
             best.move = moves[i];
@@ -262,14 +284,14 @@ ValuedMove minMove(Game *game, int color, int alpha, int beta, int depth, int ex
 }
 
 ValuedMove maxMove(Game *game, int color, int alpha, int beta, int depth, int extensions){
-    if(!(DEPTH - FULL_DEPTH <= depth) && depth <= -extensions && depth != MAX_DEPTH){
+    if((!(DEPTH - FULL_DEPTH <= depth) && depth <= -extensions) || depth == DEPTH - MAX_DEPTH){
         int value = eval(game, color, depth);
         return (ValuedMove){value, (Move){-1, -1, -1, -1, -1}};
     }
 
     Move moves[218];
     generateLegalMoves(game, moves);
-    if(moves->fromX == -1){
+    if(moves[0].fromX == -1){
         return (ValuedMove){eval(game, color, depth), (Move){-1, -1, -1, -1, -1}};
     }
 
@@ -282,7 +304,7 @@ ValuedMove maxMove(Game *game, int color, int alpha, int beta, int depth, int ex
         Game newGame = copyGame(game);
         doMove(&newGame, moves[i]);
 
-        ValuedMove curr = minMove(&newGame, color, alpha, beta, depth - 1, extensions + extend(game, &newGame, depth));
+        ValuedMove curr = minMove(&newGame, color, alpha, beta, depth - 1, extensions + extend(game, &newGame, moves[i], depth));
 
         if(curr.value > best.value){
             best.move = moves[i];

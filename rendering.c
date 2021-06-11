@@ -132,6 +132,7 @@ void renderGame(){
 
     for(int x = 0; x < 8; x++){
         for(int y = 0; y < 8; y++){
+            //Allow player to choose promotion
             if(holding && isLegal(&game, (Move){selectedX, selectedY, x, y, QUEEN})){
                 if((x + y) % 2 == 1){
                     glColor3ub(0xE2, 0x5C, 0x43);

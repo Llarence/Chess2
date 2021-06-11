@@ -77,8 +77,8 @@ void clearGame(Game *game){
 
     game->halfMoveClock = 0;
 
-    game->prevMoveWhite.fromX = -1;
-    game->prevMoveBlack.fromX = -1;
+    game->prevMoveWhite = (Move){-1, -1, -1, -1, -1};
+    game->prevMoveBlack = (Move){-1, -1, -1, -1, -1};
     game->repeatMoves = 0;
 
     game->movesSinceCapture = 0;
@@ -108,12 +108,18 @@ Game copyGame(Game *game){
 
     newGame.halfMoveClock = game->halfMoveClock;
 
+    newGame.prevMoveWhite = game->prevMoveWhite;
+    newGame.prevMoveBlack = game->prevMoveBlack;
+    newGame.repeatMoves = game->repeatMoves;
+
+    newGame.movesSinceCapture = game->movesSinceCapture;
+
     newGame.moves = game->moves;
 
     return newGame;
 }
 
-int isPsuedoLegal(Game *game, Move move);
+int isPseudoLegal(Game *game, Move move);
 
 int isAttacked(Game *game, Piece piece){
     for(int toX = 0; toX < 8; toX++){
@@ -122,7 +128,7 @@ int isAttacked(Game *game, Piece piece){
             if(currPiece.type == piece.type && currPiece.color == piece.color){
                 for(int fromX = 0; fromX < 8; fromX++){
                     for(int fromY = 0; fromY < 8; fromY++){
-                        if(isPsuedoLegal(game, (Move){fromX, fromY, toX, toY, 0})){
+                        if(isPseudoLegal(game, (Move){fromX, fromY, toX, toY, 0})){
                             return TRUE;
                         }
                     }
@@ -146,9 +152,10 @@ int isCapture(Game *game, Move move){
     }
 
     if(game->board[move.toX][move.toY].type != NONE){
-        return FALSE;
+        return TRUE;
     }
-    return TRUE;
+
+    return FALSE;
 }
 
 void doMove(Game *game, Move move){
@@ -287,7 +294,7 @@ int isValidMove(Move move){
     return FALSE;
 }
 
-int isPsuedoLegal(Game *game, Move move){
+int isPseudoLegal(Game *game, Move move){
     Piece piece = game->board[move.fromX][move.fromY];
     Piece attacked = game->board[move.toX][move.toY];
     int deltaX = move.toX - move.fromX;
@@ -637,12 +644,14 @@ int isPsuedoLegal(Game *game, Move move){
     return FALSE;
 }
 
+int isOver(Game *game, int hasMove);
+
 int isLegal(Game *game, Move move){
-    if(isPsuedoLegal(game, move)){
+    if(isPseudoLegal(game, move)){
         Game newGame = copyGame(game);
         
         doMove(&newGame, move);
-        if(!isAttacked(&newGame, (Piece){KING, game->turn})){
+        if(!isOver(game, TRUE)){
             return TRUE;
         }
     }
@@ -686,8 +695,8 @@ int isMove(Game *game){
     return FALSE;
 }
 
-int isOver(Game *game){
-    if(!isMove(game)){
+int isOver(Game *game, int hasMove){
+    if(!hasMove && !isMove(game)){
         int orginalTurn = game->turn;
         
         if(game->turn == WHITE){
@@ -714,11 +723,9 @@ int isOver(Game *game){
 
 int tryMove(Game *game, Move move){
     if(isValidMove(move)){
-        if(isOver(game)){
-            if(isLegal(game, move)){
-                doMove(game, move);
-                return TRUE;
-            }
+        if(isLegal(game, move)){
+            doMove(game, move);
+            return TRUE;
         }
     }
 
