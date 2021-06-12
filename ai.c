@@ -203,30 +203,20 @@ int nonPawns(Game *game){
     return value;
 }
 
-int isNonPawnCapture(Game *game, Move move){
-    Piece piece = game->board[move.fromX][move.fromY];
-
-    if(piece.type == PAWN){
+int getCaptureType(Game *game, Move move){
+    if(game->board[move.fromX][move.fromY].type == PAWN){
         if(game->canEnPassent && game->enPassentX == move.toX && game->enPassentY == move.toY){
             if(game->turn == WHITE){
-                if(game->board[move.toX][move.toY - 1].type != PAWN){
-                    return TRUE;
-                }
+                return game->board[move.toX][move.toY - 1].type;
             }else{
-                if(game->board[move.toX][move.toY - 1].type != PAWN){
-                    return TRUE;
-                }
+                return game->board[move.toX][move.toY - 1].type;
             }
         }
 
-        return FALSE;
+        return NONE;
     }
 
-    if(game->board[move.toX][move.toY].type != NONE && game->board[move.toX][move.toY].type != PAWN){
-        return TRUE;
-    }
-
-    return FALSE;
+    return game->board[move.toX][move.toY].type != NONE && game->board[move.toX][move.toY].type;
 }
 
 int extend(Game *game, Game *newGame, Move move, int depth){
@@ -235,10 +225,13 @@ int extend(Game *game, Game *newGame, Move move, int depth){
         return MAX_DEPTH;
     }
 
-    if(isNonPawnCapture(game, move)){
-        return 1;
-    }else{
+    int captureType = getCaptureType(game, move);
+    if(captureType == NONE){
         return -1;
+    }else if(captureType == PAWN){
+        return 0;
+    }else{
+        return 1;
     }
 }
 

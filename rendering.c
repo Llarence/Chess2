@@ -221,7 +221,6 @@ void mouseMove(int x, int y){
     }
 }
 
-//thread priority
 void *aiThread(void *args){
     Move move = getAIMove(&game);
     if(tryMove(&game, move)){
