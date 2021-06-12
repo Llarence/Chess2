@@ -308,7 +308,9 @@ void mouseClick(int button, int state, int x, int y){
 
                                     alSourcePlay(pieceMove);
 
-                                    
+                                    aiMoved = FALSE;
+                                    pthread_t threadID;
+                                    pthread_create(&threadID, NULL, aiThread, NULL);
                                 }
                             }
                         }
