@@ -133,7 +133,6 @@ void renderGame(){
 
     for(int x = 0; x < 8; x++){
         for(int y = 0; y < 8; y++){
-            //Allow player to choose promotion
             if(holding && isLegal(&game, (Move){selectedX, selectedY, x, y, QUEEN})){
                 if((x + y) % 2 == 1){
                     glColor3ub(0xE2, 0x5C, 0x43);
@@ -238,6 +237,7 @@ void *aiThread(void *args){
     return NULL;
 }
 
+//Allow player to choose promotion
 void mouseClick(int button, int state, int x, int y){
     if(aiMoved){
         mouseX = ((x / (float)glutGet(GLUT_WINDOW_WIDTH)) * 2.0) - 1.0;
@@ -308,9 +308,7 @@ void mouseClick(int button, int state, int x, int y){
 
                                     alSourcePlay(pieceMove);
 
-                                    aiMoved = FALSE;
-                                    pthread_t threadID;
-                                    pthread_create(&threadID, NULL, aiThread, NULL);
+                                    
                                 }
                             }
                         }

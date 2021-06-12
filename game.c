@@ -611,7 +611,7 @@ int isPseudoLegal(Game *game, Move move){
                         if(game->board[move.fromX - 1][move.fromY].type == NONE && game->board[move.toX][move.toY].type == NONE && game->board[move.fromX - 3][move.fromY].type == NONE){
                             Game newGame = copyGame(game);
         
-                            doMove(&newGame, (Move){move.fromX, move.fromY, move.fromX + 1, move.fromY, 0});
+                            doMove(&newGame, (Move){move.fromX, move.fromY, move.fromX - 1, move.fromY, 0});
                             if(!isAttacked(&newGame, (Piece){KING, WHITE})){
                                 newGame = copyGame(game);
                                 newGame.turn = BLACK;
@@ -641,7 +641,7 @@ int isPseudoLegal(Game *game, Move move){
                         if(game->board[move.fromX - 1][move.fromY].type == NONE && game->board[move.toX][move.toY].type == NONE && game->board[move.fromX - 3][move.fromY].type == NONE){
                             Game newGame = copyGame(game);
         
-                            doMove(&newGame, (Move){move.fromX, move.fromY, move.fromX + 1, move.fromY, 0});
+                            doMove(&newGame, (Move){move.fromX, move.fromY, move.fromX - 1, move.fromY, 0});
                             if(!isAttacked(&newGame, (Piece){KING, BLACK})){
                                 newGame = copyGame(game);
                                 newGame.turn = WHITE;
