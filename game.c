@@ -140,7 +140,7 @@ int isAttacked(Game *game, Piece piece){
             if(currPiece.type == piece.type && currPiece.color == piece.color){
                 for(int fromX = 0; fromX < 8; fromX++){
                     for(int fromY = 0; fromY < 8; fromY++){
-                        if(isPseudoLegal(game, (Move){fromX, fromY, toX, toY, 0})){
+                        if(isPseudoLegal(game, (Move){fromX, fromY, toX, toY, QUEEN})){
                             return TRUE;
                         }
                     }
@@ -170,7 +170,10 @@ int isCapture(Game *game, Move move){
     return FALSE;
 }
 
+//Claimable 50 move rule
 void doMove(Game *game, Move move){
+    Piece piece = game->board[move.fromX][move.fromY];
+
     game->movesSinceCapture += 1;
     int capture = isCapture(game, move);
     if(capture){
@@ -178,7 +181,7 @@ void doMove(Game *game, Move move){
     }
 
     if(game->turn == WHITE){
-        if(!capture && (game->prevMoveWhite2.fromX == move.fromX && game->prevMoveWhite2.fromY == move.fromY && game->prevMoveWhite2.toX == move.toX && game->prevMoveWhite2.toY == move.toY)){
+        if(!capture && piece.type != PAWN && (game->prevMoveWhite2.fromX == move.fromX && game->prevMoveWhite2.fromY == move.fromY && game->prevMoveWhite2.toX == move.toX && game->prevMoveWhite2.toY == move.toY)){
             game->repeatMoves += 1;
         }else{
             game->repeatMoves = 0;
@@ -187,7 +190,7 @@ void doMove(Game *game, Move move){
         game->prevMoveWhite2 = game->prevMoveWhite1;
         game->prevMoveWhite1 = move;
     }else{
-        if(!capture && (game->prevMoveBlack2.fromX == move.fromX && game->prevMoveBlack2.fromY == move.fromY && game->prevMoveBlack2.toX == move.toX && game->prevMoveBlack2.toY == move.toY)){
+        if(!capture && piece.type != PAWN && (game->prevMoveBlack2.fromX == move.fromX && game->prevMoveBlack2.fromY == move.fromY && game->prevMoveBlack2.toX == move.toX && game->prevMoveBlack2.toY == move.toY)){
             game->repeatMoves += 1;
         }else{
             game->repeatMoves = 0;
@@ -197,7 +200,6 @@ void doMove(Game *game, Move move){
         game->prevMoveBlack1 = move;
     }
 
-    Piece piece = game->board[move.fromX][move.fromY];
     if(game->board[move.toX][move.toY].type == NONE){
         game->halfMoveClock += 1;
     }else{

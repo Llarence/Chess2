@@ -18,12 +18,12 @@ typedef struct ValuedMove{
 } ValuedMove;
 
 int eval(Game *game, int color, int depth){
-    int over = isOver(game, FALSE);
+    int over = isOver(game, TRUE);
     if(over == CHECKMATE){
         if(game->turn == color){
-            return 100000 + (depth * 10000);
+            return 100000 + depth;
         }else{
-            return -100000 - (depth * 10000);
+            return -100000 - depth;
         }
     }
 
@@ -36,122 +36,128 @@ int eval(Game *game, int color, int depth){
         for(int y = 0; y < 8; y++){
             Piece piece = game->board[x][y];
             if(piece.color == color){
-                switch(piece.type){
-                    case PAWN:
-                        value += PAWN_VALUE;
-                        if(piece.color == WHITE){
+                if(piece.color == WHITE){
+                    switch(piece.type){
+                        case PAWN:
+                            value += PAWN_VALUE;
                             value += WHITE_PAWN_TABLE[y][x];
-                        }else{
-                            value += BLACK_PAWN_TABLE[y][x];
-                        }
-
-                        break;
-                    
-                    case KNIGHT:
-                        value += KNIGHT_VALUE;
-                        if(piece.color == WHITE){
+                            break;
+                        
+                        case KNIGHT:
+                            value += KNIGHT_VALUE;
                             value += WHITE_KNIGHT_TABLE[y][x];
-                        }else{
-                            value += BLACK_KNIGHT_TABLE[y][x];
-                        }
+                            break;
 
-                        break;
-
-                    case BISHOP:
-                        value += BISHOP_VALUE;
-                        if(piece.color == WHITE){
+                        case BISHOP:
+                            value += BISHOP_VALUE;
                             value += WHITE_BISHOP_TABLE[y][x];
-                        }else{
-                            value += BLACK_BISHOP_TABLE[y][x];
-                        }
+                            break;
 
-                        break;
-
-                    case ROOK:
-                        value += ROOK_VALUE;
-                        if(piece.color == WHITE){
+                        case ROOK:
+                            value += ROOK_VALUE;
                             value += WHITE_ROOK_TABLE[y][x];
-                        }else{
-                            value += BLACK_ROOK_TABLE[y][x];
-                        }
-
-                        break;
-                    
-                    case QUEEN:
-                        value += QUEEN_VALUE;
-                        if(piece.color == WHITE){
+                            break;
+                        
+                        case QUEEN:
+                            value += QUEEN_VALUE;
                             value += WHITE_QUEEN_TABLE[y][x];
-                        }else{
-                            value += BLACK_QUEEN_TABLE[y][x];
-                        }
-
-                        break;
-                    
-                    case KING:
-                        if(piece.color == WHITE){
+                            break;
+                        
+                        case KING:
                             value += WHITE_KING_TABLE[y][x];
-                        }else{
+                    }
+                }else{
+                    switch(piece.type){
+                        case PAWN:
+                            value += PAWN_VALUE;
+                            value += BLACK_PAWN_TABLE[y][x];
+                            break;
+                        
+                        case KNIGHT:
+                            value += KNIGHT_VALUE;
+                            value += BLACK_KNIGHT_TABLE[y][x];
+                            break;
+
+                        case BISHOP:
+                            value += BISHOP_VALUE;
+                            value += BLACK_BISHOP_TABLE[y][x];
+                            break;
+
+                        case ROOK:
+                            value += ROOK_VALUE;
+                            value += BLACK_ROOK_TABLE[y][x];
+                            break;
+                        
+                        case QUEEN:
+                            value += QUEEN_VALUE;
+                            value += BLACK_QUEEN_TABLE[y][x];
+                            break;
+                        
+                        case KING:
                             value += BLACK_KING_TABLE[y][x];
-                        }
+                    }
                 }
             }else{
-                switch(piece.type){
-                    case PAWN:
-                        value -= PAWN_VALUE;
-                        if(piece.color == WHITE){
+                if(piece.color == WHITE){
+                    switch(piece.type){
+                        case PAWN:
+                            value -= PAWN_VALUE;
                             value -= WHITE_PAWN_TABLE[y][x];
-                        }else{
-                            value -= BLACK_PAWN_TABLE[y][x];
-                        }
-
-                        break;
-                    
-                    case KNIGHT:
-                        value -= KNIGHT_VALUE;
-                        if(piece.color == WHITE){
+                            break;
+                        
+                        case KNIGHT:
+                            value -= KNIGHT_VALUE;
                             value -= WHITE_KNIGHT_TABLE[y][x];
-                        }else{
-                            value -= BLACK_KNIGHT_TABLE[y][x];
-                        }
+                            break;
 
-                        break;
-
-                    case BISHOP:
-                        value -= BISHOP_VALUE;
-                        if(piece.color == WHITE){
+                        case BISHOP:
+                            value -= BISHOP_VALUE;
                             value -= WHITE_BISHOP_TABLE[y][x];
-                        }else{
-                            value -= BLACK_BISHOP_TABLE[y][x];
-                        }
+                            break;
 
-                        break;
-
-                    case ROOK:
-                        value -= ROOK_VALUE;
-                        if(piece.color == WHITE){
+                        case ROOK:
+                            value -= ROOK_VALUE;
                             value -= WHITE_ROOK_TABLE[y][x];
-                        }else{
-                            value -= BLACK_ROOK_TABLE[y][x];
-                        }
-
-                        break;
-                    
-                    case QUEEN:
-                        value -= QUEEN_VALUE;
-                        if(piece.color == WHITE){
+                            break;
+                        
+                        case QUEEN:
+                            value -= QUEEN_VALUE;
                             value -= WHITE_QUEEN_TABLE[y][x];
-                        }else{
-                            value -= BLACK_QUEEN_TABLE[y][x];
-                        }
-
-                        break;
-                    
-                    case KING:
-                        if(piece.color == WHITE){
+                            break;
+                        
+                        case KING:
                             value -= WHITE_KING_TABLE[y][x];
-                        }else{
+                    }
+                }else{
+                    switch(piece.type){
+                        case PAWN:
+                            value -= PAWN_VALUE;
+                            value -= BLACK_PAWN_TABLE[y][x];
+                            break;
+                        
+                        case KNIGHT:
+                            value -= KNIGHT_VALUE;
+                            value -= BLACK_KNIGHT_TABLE[y][x];
+                            break;
+
+                        case BISHOP:
+                            value -= BISHOP_VALUE;
+                            value -= BLACK_BISHOP_TABLE[y][x];
+                            break;
+
+                        case ROOK:
+                            value -= ROOK_VALUE;
+                            value -= BLACK_ROOK_TABLE[y][x];
+                            break;
+                        
+                        case QUEEN:
+                            value -= QUEEN_VALUE;
+                            value -= BLACK_QUEEN_TABLE[y][x];
+                            break;
+                        
+                        case KING:
                             value -= BLACK_KING_TABLE[y][x];
-                        }
+                    }
                 }
             }
         }

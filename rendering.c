@@ -33,6 +33,7 @@ int X2 = -1;
 int Y2;
 
 int aiMoved = TRUE;
+int aiMovedRender = FALSE;
 
 void createSounds(){
     ALuint buffer;
@@ -214,7 +215,7 @@ void render(){
 }
 
 void mouseMove(int x, int y){
-    if(!aiMoved){
+    if(aiMoved){
         mouseX = ((x / (float)glutGet(GLUT_WINDOW_WIDTH)) * 2.0) - 1.0;
         mouseY = (1.0 - (y / (float)glutGet(GLUT_WINDOW_HEIGHT)) * 2.0);
         render();
@@ -229,6 +230,7 @@ void *aiThread(void *args){
         X2 = move.toX;
         Y2 = move.toY;
 
+        aiMovedRender = TRUE;
         aiMoved = TRUE;
         alSourcePlay(pieceMove);
     }
@@ -237,7 +239,7 @@ void *aiThread(void *args){
 }
 
 void mouseClick(int button, int state, int x, int y){
-    if(!aiMoved){
+    if(aiMoved){
         mouseX = ((x / (float)glutGet(GLUT_WINDOW_WIDTH)) * 2.0) - 1.0;
         mouseY = (1.0 - (y / (float)glutGet(GLUT_WINDOW_HEIGHT)) * 2.0);
 
@@ -336,9 +338,9 @@ void initSound(){
 }
 
 void checkAI(){
-    if(aiMoved == TRUE){
+    if(aiMovedRender){
         render();
-        aiMoved = FALSE;
+        aiMovedRender = FALSE;
     }
 }
 
