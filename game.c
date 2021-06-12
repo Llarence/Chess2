@@ -47,8 +47,12 @@ typedef struct Game{
 
     int halfMoveClock;
 
-    Move prevMoveWhite;
-    Move prevMoveBlack;
+    Move prevMoveWhite1;
+    Move prevMoveWhite2;
+
+    Move prevMoveBlack1;
+    Move prevMoveBlack2;
+    
     int repeatMoves;
 
     int movesSinceCapture;
@@ -77,8 +81,12 @@ void clearGame(Game *game){
 
     game->halfMoveClock = 0;
 
-    game->prevMoveWhite = (Move){-1, -1, -1, -1, -1};
-    game->prevMoveBlack = (Move){-1, -1, -1, -1, -1};
+    game->prevMoveWhite1 = (Move){-1, -1, -1, -1, -1};
+    game->prevMoveWhite2 = (Move){-1, -1, -1, -1, -1};
+
+    game->prevMoveBlack1 = (Move){-1, -1, -1, -1, -1};
+    game->prevMoveBlack2 = (Move){-1, -1, -1, -1, -1};
+
     game->repeatMoves = 0;
 
     game->movesSinceCapture = 0;
@@ -108,8 +116,12 @@ Game copyGame(Game *game){
 
     newGame.halfMoveClock = game->halfMoveClock;
 
-    newGame.prevMoveWhite = game->prevMoveWhite;
-    newGame.prevMoveBlack = game->prevMoveBlack;
+    newGame.prevMoveWhite1 = game->prevMoveWhite1;
+    newGame.prevMoveWhite2 = game->prevMoveWhite2;
+
+    newGame.prevMoveBlack1 = game->prevMoveBlack1;
+    newGame.prevMoveBlack2 = game->prevMoveBlack2;
+
     newGame.repeatMoves = game->repeatMoves;
 
     newGame.movesSinceCapture = game->movesSinceCapture;
@@ -166,21 +178,23 @@ void doMove(Game *game, Move move){
     }
 
     if(game->turn == WHITE){
-        if(capture && game->prevMoveWhite.fromX == move.fromX || game->prevMoveWhite.fromY == move.fromY || game->prevMoveWhite.toX == move.toX || game->prevMoveWhite.toY == move.toY){
+        if(!capture && (game->prevMoveWhite2.fromX == move.fromX && game->prevMoveWhite2.fromY == move.fromY && game->prevMoveWhite2.toX == move.toX && game->prevMoveWhite2.toY == move.toY)){
             game->repeatMoves += 1;
         }else{
             game->repeatMoves = 0;
         }
 
-        game->prevMoveWhite = move;
+        game->prevMoveWhite2 = game->prevMoveWhite1;
+        game->prevMoveWhite1 = move;
     }else{
-        if(capture && game->prevMoveBlack.fromX == move.fromX || game->prevMoveBlack.fromY == move.fromY || game->prevMoveBlack.toX == move.toX || game->prevMoveBlack.toY == move.toY){
+        if(!capture && (game->prevMoveBlack2.fromX == move.fromX && game->prevMoveBlack2.fromY == move.fromY && game->prevMoveBlack2.toX == move.toX && game->prevMoveBlack2.toY == move.toY)){
             game->repeatMoves += 1;
         }else{
             game->repeatMoves = 0;
         }
 
-        game->prevMoveBlack = move;
+        game->prevMoveBlack2 = game->prevMoveBlack1;
+        game->prevMoveBlack1 = move;
     }
 
     Piece piece = game->board[move.fromX][move.fromY];
@@ -644,35 +658,11 @@ int isPseudoLegal(Game *game, Move move){
     return FALSE;
 }
 
-int isOverByRule(Game *game){
-    int orginalTurn = game->turn;
-    
-    if(game->turn == WHITE){
-        game->turn = BLACK;
-    }else{
-        game->turn = WHITE;
-    }
-
-    if(game->repeatMoves == 6 || game->repeatMoves == 75){
-        game->turn = orginalTurn;
-        return STALEMATE;
-    }
-
-    if(isAttacked(game, (Piece){KING, orginalTurn})){
-        game->turn = orginalTurn;
-        return CHECKMATE;
-    }else{
-        game->turn = orginalTurn;
-        return STALEMATE;
-    }
-
-    game->turn = orginalTurn;
-    return FALSE;
-}
+int isOver(Game *game, int hasMove);
 
 int isLegal(Game *game, Move move){
     if(isPseudoLegal(game, move)){
-        if(isOverByRule(game)){
+        if(!isOver(game, TRUE)){
             Game newGame = copyGame(game);
             
             doMove(&newGame, move);
@@ -722,8 +712,26 @@ int isMove(Game *game){
 }
 
 int isOver(Game *game, int hasMove){
+    if(game->repeatMoves == 6 || game->movesSinceCapture == 75){
+        return STALEMATE;
+    }
+
     if(!hasMove && !isMove(game)){
-        return isOverByRule(game);
+        int orginalTurn = game->turn;
+        
+        if(game->turn == WHITE){
+            game->turn = BLACK;
+        }else{
+            game->turn = WHITE;
+        }
+
+        if(isAttacked(game, (Piece){KING, orginalTurn})){
+            game->turn = orginalTurn;
+            return CHECKMATE;
+        }else{
+            game->turn = orginalTurn;
+            return STALEMATE;
+        }
     }
     
     return FALSE;

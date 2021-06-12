@@ -1,7 +1,8 @@
 #define DEPTH 6
 #define MAX_DEPTH 10
 #define FULL_DEPTH 4
-#define FULL_SEARCH_NONPAWNS 6
+#define EXTEND_SEARCH_NONPAWNS 6
+#define EXTEND_DEPTH 2
 
 #define PAWN_VALUE 100
 #define KNIGHT_VALUE 320

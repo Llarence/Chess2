@@ -159,29 +159,17 @@ int eval(Game *game, int color, int depth){
 
     if(color == WHITE){
         if(game->blackCanCastleKingside){
-            value -= 10;
+            value -= 60;
         }
         if(game->blackCanCastleQueenside){
-            value -= 10;
-        }
-        if(game->whiteCanCastleKingside){
-            value += 10;
-        }
-        if(game->whiteCanCastleQueenside){
-            value += 10;
+            value -= 60;
         }
     }else{
-        if(game->blackCanCastleKingside){
-            value += 10;
-        }
-        if(game->blackCanCastleQueenside){
-            value += 10;
-        }
         if(game->whiteCanCastleKingside){
-            value -= 10;
+            value -= 60;
         }
         if(game->whiteCanCastleQueenside){
-            value -= 10;
+            value -= 60;
         }
     }
 
@@ -221,8 +209,8 @@ int getCaptureType(Game *game, Move move){
 
 int extend(Game *game, Game *newGame, Move move, int depth){
     int nonPawnsNew = nonPawns(newGame);
-    if(depth == DEPTH && nonPawnsNew <= FULL_SEARCH_NONPAWNS){
-        return MAX_DEPTH;
+    if(depth == DEPTH && nonPawnsNew <= EXTEND_SEARCH_NONPAWNS){
+        return EXTEND_DEPTH;
     }
 
     int captureType = getCaptureType(game, move);
