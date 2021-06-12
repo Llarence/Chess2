@@ -644,16 +644,40 @@ int isPseudoLegal(Game *game, Move move){
     return FALSE;
 }
 
-int isOver(Game *game, int hasMove);
+int isOverByRule(Game *game){
+    int orginalTurn = game->turn;
+    
+    if(game->turn == WHITE){
+        game->turn = BLACK;
+    }else{
+        game->turn = WHITE;
+    }
+
+    if(game->repeatMoves == 6 || game->repeatMoves == 75){
+        return STALEMATE;
+    }
+
+    if(isAttacked(game, (Piece){KING, orginalTurn})){
+        return CHECKMATE;
+    }else{
+        return STALEMATE;
+    }
+
+    game->turn = orginalTurn;
+    
+    return FALSE;
+}
 
 int isLegal(Game *game, Move move){
     if(isPseudoLegal(game, move)){
-        Game newGame = copyGame(game);
-        
-        doMove(&newGame, move);
-        if(!isOver(game, TRUE)){
-            return TRUE;
-        }
+        //if(isOverByRule(game)){
+            Game newGame = copyGame(game);
+            
+            doMove(&newGame, move);
+            if(!isAttacked(&newGame, (Piece){KING, game->turn})){
+                return TRUE;
+            }
+        //}
     }
 
     return FALSE;
@@ -697,25 +721,7 @@ int isMove(Game *game){
 
 int isOver(Game *game, int hasMove){
     if(!hasMove && !isMove(game)){
-        int orginalTurn = game->turn;
-        
-        if(game->turn == WHITE){
-            game->turn = BLACK;
-        }else{
-            game->turn = WHITE;
-        }
-
-        if(game->repeatMoves == 6 || game->repeatMoves == 75){
-            return STALEMATE;
-        }
-
-        if(isAttacked(game, (Piece){KING, orginalTurn})){
-            return CHECKMATE;
-        }else{
-            return STALEMATE;
-        }
-
-        game->turn = orginalTurn;
+        return isOverByRule(game);
     }
     
     return FALSE;

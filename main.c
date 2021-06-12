@@ -8,10 +8,7 @@
 #include "rendering.c"
 
 int main(int argc, char** argv){
-    //initWindow();
-    Game game;
-    initGame(&game);
-    getAIMove(&game);
+    initWindow();
     return 0;
 }
 

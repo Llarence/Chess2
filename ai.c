@@ -194,7 +194,7 @@ int nonPawns(Game *game){
     for(int x = 0; x < 8; x++){
         for(int y = 0; y < 8; y++){
             int type = game->board[x][y].type;
-            if(type != NONE || type != PAWN){
+            if(type != NONE && type != PAWN){
                 value += 1;
             }
         }
@@ -222,7 +222,7 @@ int isNonPawnCapture(Game *game, Move move){
         return FALSE;
     }
 
-    if(game->board[move.toX][move.toY].type != NONE || game->board[move.toX][move.toY].type != PAWN){
+    if(game->board[move.toX][move.toY].type != NONE && game->board[move.toX][move.toY].type != PAWN){
         return TRUE;
     }
 
@@ -232,7 +232,7 @@ int isNonPawnCapture(Game *game, Move move){
 int extend(Game *game, Game *newGame, Move move, int depth){
     int nonPawnsNew = nonPawns(newGame);
     if(depth == DEPTH && nonPawnsNew <= FULL_SEARCH_NONPAWNS){
-        return MAX_DEPTH * 3;
+        return MAX_DEPTH;
     }
 
     if(isNonPawnCapture(game, move)){
@@ -245,7 +245,7 @@ int extend(Game *game, Game *newGame, Move move, int depth){
 ValuedMove maxMove(Game *game, int color, int alpha, int beta, int depth, int extensions);
 
 ValuedMove minMove(Game *game, int color, int alpha, int beta, int depth, int extensions){
-    if((!(DEPTH - FULL_DEPTH <= depth) && depth <= -extensions) || depth == DEPTH - MAX_DEPTH){
+    if((!(DEPTH - FULL_DEPTH < depth) && depth <= -extensions) || depth == DEPTH - MAX_DEPTH){
         int value = eval(game, color, depth);
         return (ValuedMove){eval(game, color, depth), (Move){-1, -1, -1, -1, -1}};
     }
@@ -284,7 +284,7 @@ ValuedMove minMove(Game *game, int color, int alpha, int beta, int depth, int ex
 }
 
 ValuedMove maxMove(Game *game, int color, int alpha, int beta, int depth, int extensions){
-    if((!(DEPTH - FULL_DEPTH <= depth) && depth <= -extensions) || depth == DEPTH - MAX_DEPTH){
+    if((!(DEPTH - FULL_DEPTH < depth) && depth <= -extensions) || depth == DEPTH - MAX_DEPTH){
         int value = eval(game, color, depth);
         return (ValuedMove){value, (Move){-1, -1, -1, -1, -1}};
     }
