@@ -1,5 +1,5 @@
-#define DEPTH 6
-#define MAX_DEPTH 10
+#define DEPTH 8
+#define MAX_DEPTH 14
 #define FULL_DEPTH 4
 #define EXTEND_SEARCH_NONPAWNS 6
 #define EXTEND_DEPTH 2

@@ -666,8 +666,8 @@ int isLegal(Game *game, Move move){
     if(isPseudoLegal(game, move)){
         if(!isOver(game, TRUE)){
             Game newGame = copyGame(game);
-            
             doMove(&newGame, move);
+            
             if(!isAttacked(&newGame, (Piece){KING, game->turn})){
                 return TRUE;
             }

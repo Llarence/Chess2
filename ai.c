@@ -18,9 +18,9 @@ typedef struct ValuedMove{
 } ValuedMove;
 
 int eval(Game *game, int color, int depth){
-    int over = isOver(game, TRUE);
+    int over = isOver(game, FALSE);
     if(over == CHECKMATE){
-        if(game->turn == color){
+        if(game->turn != color){
             return 100000 + depth;
         }else{
             return -100000 - depth;
