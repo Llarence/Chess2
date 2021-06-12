@@ -36,6 +36,7 @@ int eval(Game *game, int color, int depth){
         for(int y = 0; y < 8; y++){
             Piece piece = game->board[x][y];
             if(piece.color == color){
+                value += CONTEMPT;
                 if(piece.color == WHITE){
                     switch(piece.type){
                         case PAWN:
