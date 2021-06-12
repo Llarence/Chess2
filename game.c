@@ -242,19 +242,19 @@ void doMove(Game *game, Move move){
         }
     }
 
-    if(move.fromX == 7 && move.fromY == 0){
+    if((move.fromX == 7 && move.fromY == 0) || (move.toX == 7 && move.toY == 0)){
         game->whiteCanCastleKingside = FALSE;
     }
 
-    if(move.fromX == 0 && move.fromY == 0){
+    if((move.fromX == 0 && move.fromY == 0) || (move.toX == 0 && move.toY == 0)){
         game->whiteCanCastleQueenside = FALSE;
     }
 
-    if(move.fromX == 7 && move.fromY == 7){
+    if((move.fromX == 7 && move.fromY == 7) || (move.toX == 7 && move.toY == 7)){
         game->blackCanCastleKingside = FALSE;
     }
 
-    if(move.fromX == 0 && move.fromY == 7){
+    if((move.fromX == 0 && move.fromY == 7) || (move.toX == 0 && move.toY == 7)){
         game->blackCanCastleQueenside = FALSE;
     }
 
@@ -667,7 +667,7 @@ int isLegal(Game *game, Move move){
         if(!isOver(game, TRUE)){
             Game newGame = copyGame(game);
             doMove(&newGame, move);
-            
+
             if(!isAttacked(&newGame, (Piece){KING, game->turn})){
                 return TRUE;
             }

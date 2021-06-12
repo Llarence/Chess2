@@ -165,17 +165,17 @@ int eval(Game *game, int color, int depth){
 
     if(color == WHITE){
         if(game->blackCanCastleKingside){
-            value -= 30;
+            value -= 20;
         }
         if(game->blackCanCastleQueenside){
-            value -= 30;
+            value -= 20;
         }
     }else{
         if(game->whiteCanCastleKingside){
-            value -= 30;
+            value -= 20;
         }
         if(game->whiteCanCastleQueenside){
-            value -= 30;
+            value -= 20;
         }
     }
 
