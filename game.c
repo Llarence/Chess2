@@ -654,30 +654,32 @@ int isOverByRule(Game *game){
     }
 
     if(game->repeatMoves == 6 || game->repeatMoves == 75){
+        game->turn = orginalTurn;
         return STALEMATE;
     }
 
     if(isAttacked(game, (Piece){KING, orginalTurn})){
+        game->turn = orginalTurn;
         return CHECKMATE;
     }else{
+        game->turn = orginalTurn;
         return STALEMATE;
     }
 
     game->turn = orginalTurn;
-    
     return FALSE;
 }
 
 int isLegal(Game *game, Move move){
     if(isPseudoLegal(game, move)){
-        //if(isOverByRule(game)){
+        if(isOverByRule(game)){
             Game newGame = copyGame(game);
             
             doMove(&newGame, move);
             if(!isAttacked(&newGame, (Piece){KING, game->turn})){
                 return TRUE;
             }
-        //}
+        }
     }
 
     return FALSE;
