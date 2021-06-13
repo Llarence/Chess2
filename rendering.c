@@ -15,7 +15,7 @@
 #include "fen.c"
 #include "ai.c"
 
-#define AI_WHITE TRUE
+#define AI_WHITE FALSE
 #define AI_BLACK TRUE
 
 Game game;

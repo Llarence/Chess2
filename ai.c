@@ -25,6 +25,7 @@ typedef struct PartialMaxMoveArgs{
     int color;
     int alpha;
     int beta;
+    int startValue;
     int depth;
     int extensions;
 } PartialMaxMoveArgs;
@@ -228,25 +229,32 @@ int getCaptureType(Game *game, Move move){
     return game->board[move.toX][move.toY].type != NONE && game->board[move.toX][move.toY].type;
 }
 
-int extend(Game *game, Game *newGame, Move move, int depth){
+int extend(Game *game, Game *newGame, int color, Move move, int depth, int startValue){
+    int value = 0;
+
     int nonPawnsNew = nonPawns(newGame);
     if(depth == DEPTH && nonPawnsNew <= EXTEND_SEARCH_NONPAWNS){
-        return EXTEND_DEPTH;
+        value += EXTEND_DEPTH;
     }
 
     int captureType = getCaptureType(game, move);
     if(captureType == NONE){
-        return -1;
-    }else if(captureType == PAWN){
-        return 0;
-    }else{
-        return 1;
+        value += -1;
+    }else if(captureType != PAWN){
+        value += 1;
     }
+
+    int deltaEval = startValue - eval(game, color, depth);
+    if(deltaEval < 400){
+        value += -1;
+    }
+
+    return value;
 }
 
-ValuedMove maxMove(Game *game, int color, int alpha, int beta, int depth, int extensions);
+ValuedMove maxMove(Game *game, int color, int alpha, int beta, int depth, int startValue, int extensions);
 
-ValuedMove minMove(Game *game, int color, int alpha, int beta, int depth, int extensions){
+ValuedMove minMove(Game *game, int color, int alpha, int beta, int depth, int startValue, int extensions){
     if((!(DEPTH - FULL_DEPTH < depth) && depth <= -extensions) || depth == DEPTH - MAX_DEPTH){
         int value = eval(game, color, depth);
         return (ValuedMove){eval(game, color, depth), (Move){-1, -1, -1, -1, -1}};
@@ -267,7 +275,7 @@ ValuedMove minMove(Game *game, int color, int alpha, int beta, int depth, int ex
         Game newGame = copyGame(game);
         doMove(&newGame, moves[i]);
 
-        ValuedMove curr = maxMove(&newGame, color, alpha, beta, depth - 1, extensions + extend(game, &newGame, moves[i], depth));
+        ValuedMove curr = maxMove(&newGame, color, alpha, beta, depth - 1, startValue, extensions + extend(game, &newGame, color, moves[i], depth, startValue));
 
         if(curr.value < best.value){
             best.move = moves[i];
@@ -285,7 +293,7 @@ ValuedMove minMove(Game *game, int color, int alpha, int beta, int depth, int ex
     return best;
 }
 
-ValuedMove maxMove(Game *game, int color, int alpha, int beta, int depth, int extensions){
+ValuedMove maxMove(Game *game, int color, int alpha, int beta, int depth, int startValue, int extensions){
     if((!(DEPTH - FULL_DEPTH < depth) && depth <= -extensions) || depth == DEPTH - MAX_DEPTH){
         int value = eval(game, color, depth);
         return (ValuedMove){value, (Move){-1, -1, -1, -1, -1}};
@@ -306,7 +314,7 @@ ValuedMove maxMove(Game *game, int color, int alpha, int beta, int depth, int ex
         Game newGame = copyGame(game);
         doMove(&newGame, moves[i]);
 
-        ValuedMove curr = minMove(&newGame, color, alpha, beta, depth - 1, extensions + extend(game, &newGame, moves[i], depth));
+        ValuedMove curr = minMove(&newGame, color, alpha, beta, depth - 1, startValue, extensions + extend(game, &newGame, color, moves[i], depth, startValue));
 
         if(curr.value > best.value){
             best.move = moves[i];
@@ -336,7 +344,7 @@ void *partialMaxMove(void *inpArgs){
         Game newGame = copyGame(args->game);
         doMove(&newGame, args->moves[i]);
 
-        ValuedMove curr = minMove(&newGame, args->color, alpha, args->beta, args->depth - 1, args->extensions + extend(args->game, &newGame, args->moves[i], args->depth));
+        ValuedMove curr = minMove(&newGame, args->color, alpha, args->beta, args->depth - 1, args->startValue, args->extensions + extend(args->game, &newGame, args->color, args->moves[i], args->depth, args->startValue));
 
         if(curr.value > best->value){
             best->move = args->moves[i];
@@ -385,6 +393,7 @@ Move getAIMove(Game *game){
         inpArg->alpha = -1000000;
         inpArg->beta = 1000000;
         inpArg->depth = DEPTH;
+        inpArg->startValue = eval(game, game->turn, DEPTH);
         inpArg->extensions = 0;
         pthread_create(&threadIDs[i], NULL, partialMaxMove, (void *)inpArg);
         inpArgs[i] = inpArg;
