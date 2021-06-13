@@ -6,7 +6,7 @@
 
 #define CONTEMPT 0
 
-#define THREADS 3
+#define THREADS 6
 
 #define PAWN_VALUE 100
 #define KNIGHT_VALUE 320

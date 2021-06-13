@@ -33,7 +33,7 @@ int X2 = -1;
 int Y2;
 
 int aiMoved = TRUE;
-int aiMovedRender = FALSE;
+pthread_t aiThreadID;
 
 void createSounds(){
     ALuint buffer;
@@ -229,7 +229,6 @@ void *aiThread(void *args){
         X2 = move.toX;
         Y2 = move.toY;
 
-        aiMovedRender = TRUE;
         aiMoved = TRUE;
         alSourcePlay(pieceMove);
     }
@@ -309,8 +308,7 @@ void mouseClick(int button, int state, int x, int y){
                                     alSourcePlay(pieceMove);
 
                                     aiMoved = FALSE;
-                                    pthread_t threadID;
-                                    pthread_create(&threadID, NULL, aiThread, NULL);
+                                    pthread_create(&aiThreadID, NULL, aiThread, NULL);
                                 }
                             }
                         }
@@ -337,12 +335,9 @@ void initSound(){
     createSounds();
 }
 
-//fix busy wait
 void checkAI(){
-    if(aiMovedRender){
-        render();
-        aiMovedRender = FALSE;
-    }
+    pthread_join(aiThreadID, NULL);
+    render();
 }
 
 void initWindow(){
