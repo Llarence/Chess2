@@ -9,10 +9,14 @@
 #include <AL/alc.h>
 #include <pthread.h> 
 #include <time.h>
+#include <unistd.h>
 
 #include "game.c"
 #include "fen.c"
 #include "ai.c"
+
+#define AI_WHITE FALSE
+#define AI_BLACK TRUE
 
 Game game;
 
@@ -33,7 +37,9 @@ int X2 = -1;
 int Y2;
 
 int aiMoved = TRUE;
-pthread_t aiThreadID;
+volatile int aiThreadDone = TRUE;
+
+pthread_t threadID;
 
 void createSounds(){
     ALuint buffer;
@@ -221,6 +227,10 @@ void mouseMove(int x, int y){
     }
 }
 
+void onResize(int x, int y){
+    render();
+}
+
 void *aiThread(void *args){
     Move move = getAIMove(&game);
     if(tryMove(&game, move)){
@@ -228,12 +238,30 @@ void *aiThread(void *args){
         Y1 = move.fromY;
         X2 = move.toX;
         Y2 = move.toY;
-
-        aiMoved = TRUE;
         alSourcePlay(pieceMove);
     }
 
+    aiThreadDone = TRUE;
     return NULL;
+}
+
+void nextMove(){
+    render();
+    if(game.turn == WHITE){
+        if(AI_WHITE){
+            aiMoved = FALSE;
+            pthread_create(&threadID, NULL, aiThread, NULL);
+        }else{
+            aiMoved = TRUE;
+        }
+    }else{
+        if(AI_BLACK){
+            aiMoved = FALSE;
+            pthread_create(&threadID, NULL, aiThread, NULL);
+        }else{
+            aiMoved = TRUE;
+        }
+    }
 }
 
 //Allow player to choose promotion
@@ -304,11 +332,8 @@ void mouseClick(int button, int state, int x, int y){
                                     Y1 = selectedY;
                                     X2 = x;
                                     Y2 = y;
-
                                     alSourcePlay(pieceMove);
-
-                                    aiMoved = FALSE;
-                                    pthread_create(&aiThreadID, NULL, aiThread, NULL);
+                                    nextMove();
                                 }
                             }
                         }
@@ -335,9 +360,13 @@ void initSound(){
     createSounds();
 }
 
-void checkAI(){
-    pthread_join(aiThreadID, NULL);
+void loop(){
+    usleep(10000);
     render();
+    if(aiThreadDone){
+        aiThreadDone = FALSE;
+        nextMove();
+    }
 }
 
 void initWindow(){
@@ -359,8 +388,11 @@ void initWindow(){
     glutDisplayFunc(render);
     glutMouseFunc(mouseClick);
     glutMotionFunc(mouseMove);
-    glutIdleFunc(checkAI);
+    glutPassiveMotionFunc(mouseMove);
+    glutIdleFunc(loop);
     atexit(onExit);
+
+    nextMove();
 
     glutMainLoop();
 }
