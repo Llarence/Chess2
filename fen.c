@@ -16,7 +16,7 @@ void readFen(Game *game, const char *fen){
         nextChar = fen[i + 1];
 
         if(currChar == ' '){
-            spaces += 1;
+            spaces++;
         }else{
             switch (spaces){
                 case 0:
@@ -24,73 +24,73 @@ void readFen(Game *game, const char *fen){
                         case 'P':
                             game->board[boardPos % 8][(63 - boardPos) / 8].type = PAWN;
                             game->board[boardPos % 8][(63 - boardPos) / 8].color = WHITE;
-                            boardPos += 1;
+                            boardPos++;
                             break;
                         
                         case 'N':
                             game->board[boardPos % 8][(63 - boardPos) / 8].type = KNIGHT;
                             game->board[boardPos % 8][(63 - boardPos) / 8].color = WHITE;
-                            boardPos += 1;
+                            boardPos++;
                             break;
                         
                         case 'B':
                             game->board[boardPos % 8][(63 - boardPos) / 8].type = BISHOP;
                             game->board[boardPos % 8][(63 - boardPos) / 8].color = WHITE;
-                            boardPos += 1;
+                            boardPos++;
                             break;
                         
                         case 'R':
                             game->board[boardPos % 8][(63 - boardPos) / 8].type = ROOK;
                             game->board[boardPos % 8][(63 - boardPos) / 8].color = WHITE;
-                            boardPos += 1;
+                            boardPos++;
                             break;
                         
                         case 'Q':
                             game->board[boardPos % 8][(63 - boardPos) / 8].type = QUEEN;
                             game->board[boardPos % 8][(63 - boardPos) / 8].color = WHITE;
-                            boardPos += 1;
+                            boardPos++;
                             break;
                         
                         case 'K':
                             game->board[boardPos % 8][(63 - boardPos) / 8].type = KING;
                             game->board[boardPos % 8][(63 - boardPos) / 8].color = WHITE;
-                            boardPos += 1;
+                            boardPos++;
                             break;
                         
                         case 'p':
                             game->board[boardPos % 8][(63 - boardPos) / 8].type = PAWN;
                             game->board[boardPos % 8][(63 - boardPos) / 8].color = BLACK;
-                            boardPos += 1;
+                            boardPos++;
                             break;
 
                         case 'n':
                             game->board[boardPos % 8][(63 - boardPos) / 8].type = KNIGHT;
                             game->board[boardPos % 8][(63 - boardPos) / 8].color = BLACK;
-                            boardPos += 1;
+                            boardPos++;
                             break;
 
                         case 'b':
                             game->board[boardPos % 8][(63 - boardPos) / 8].type = BISHOP;
                             game->board[boardPos % 8][(63 - boardPos) / 8].color = BLACK;
-                            boardPos += 1;
+                            boardPos++;
                             break;
 
                         case 'r':
                             game->board[boardPos % 8][(63 - boardPos) / 8].type = ROOK;
                             game->board[boardPos % 8][(63 - boardPos) / 8].color = BLACK;
-                            boardPos += 1;
+                            boardPos++;
                             break;
 
                         case 'q':
                             game->board[boardPos % 8][(63 - boardPos)/ 8].type = QUEEN;
                             game->board[boardPos % 8][(63 - boardPos) / 8].color = BLACK;
-                            boardPos += 1;
+                            boardPos++;
                             break;
 
                         case 'k':
                             game->board[boardPos % 8][(63 - boardPos) / 8].type = KING;
                             game->board[boardPos % 8][(63 - boardPos) / 8].color = BLACK;
-                            boardPos += 1;
+                            boardPos++;
                             break;
                         
                         case '/':

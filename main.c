@@ -9,6 +9,9 @@
 
 int main(int argc, char** argv){
     initWindow();
+    //Game game;
+    //initGame(&game);
+    //getAIMove(&game);
     return 0;
 }
 

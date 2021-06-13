@@ -337,6 +337,7 @@ void initSound(){
     createSounds();
 }
 
+//fix busy wait
 void checkAI(){
     if(aiMovedRender){
         render();

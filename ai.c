@@ -17,6 +17,20 @@ typedef struct ValuedMove{
     Move move;
 } ValuedMove;
 
+typedef struct PartialMaxMoveArgs{
+    Game *game;
+    Move *moves;
+    int rangeMin;
+    int rangeMax;
+    int color;
+    int alpha;
+    int beta;
+    int depth;
+    int extensions;
+} PartialMaxMoveArgs;
+
+
+//fix endgame idle
 int eval(Game *game, int color, int depth){
     int over = isOver(game, FALSE);
     if(over == CHECKMATE){
@@ -190,7 +204,7 @@ int nonPawns(Game *game){
         for(int y = 0; y < 8; y++){
             int type = game->board[x][y].type;
             if(type != NONE && type != PAWN){
-                value += 1;
+                value++;
             }
         }
     }
@@ -310,8 +324,93 @@ ValuedMove maxMove(Game *game, int color, int alpha, int beta, int depth, int ex
     return best;
 }
 
+void *partialMaxMove(void *inpArgs){
+    PartialMaxMoveArgs *args = (PartialMaxMoveArgs *)inpArgs;
+    int alpha = args->alpha;
+
+    ValuedMove *best = (ValuedMove *)malloc(sizeof(ValuedMove));
+    best->value = -1000000;
+    best->move = (Move){-1, -1, -1, -1, -1};
+    for(int i = args->rangeMin; i < args->rangeMax; i++){
+
+        Game newGame = copyGame(args->game);
+        doMove(&newGame, args->moves[i]);
+
+        ValuedMove curr = minMove(&newGame, args->color, alpha, args->beta, args->depth - 1, args->extensions + extend(args->game, &newGame, args->moves[i], args->depth));
+
+        if(curr.value > best->value){
+            best->move = args->moves[i];
+            best->value = curr.value;
+            if(alpha < curr.value){
+                alpha = curr.value;
+            }
+        }
+    }
+
+    return (void *)best;
+}
+
 Move getAIMove(Game *game){
-    return maxMove(game, game->turn, -1000000, 1000000, DEPTH, 0).move;
+    Move moves[218];
+    generateLegalMoves(game, moves);
+    if(moves[0].fromX == -1){
+        return (Move){-1, -1, -1, -1, -1};
+    }
+
+    int movesLen = 0;
+    for(int i = 0; i < 218; i++){
+        if(moves[i].fromX == -1){
+            break;
+        }
+
+        movesLen++;
+    }
+
+    int movesPerThread = movesLen / THREADS;
+
+    PartialMaxMoveArgs *inpArgs[THREADS];
+    void *outs[THREADS];
+    pthread_t threadIDs[THREADS];
+    for(int i = 0; i < THREADS; i++){
+        PartialMaxMoveArgs *inpArg = (PartialMaxMoveArgs *)malloc(sizeof(PartialMaxMoveArgs));
+        inpArg->game = game;
+        inpArg->moves = moves;
+        inpArg->rangeMin = i * movesPerThread;
+        if(i == THREADS - 1){
+            inpArg->rangeMax = movesLen;
+        }else{
+            inpArg->rangeMax = (i + 1) * movesPerThread;
+        }
+        inpArg->color = game->turn;
+        inpArg->alpha = -1000000;
+        inpArg->beta = 1000000;
+        inpArg->depth = DEPTH;
+        inpArg->extensions = 0;
+        pthread_create(&threadIDs[i], NULL, partialMaxMove, (void *)inpArg);
+        inpArgs[i] = inpArg;
+    }
+
+    ValuedMove topMoves[THREADS];
+    for(int i = 0; i < THREADS; i++){
+        pthread_join(threadIDs[i], &(outs[i]));
+        topMoves[i] = *((ValuedMove *)outs[i]);
+    }
+
+    ValuedMove best;
+    best.value = -1000000;
+    for(int i = 0; i < THREADS; i++){
+        if(topMoves[i].value > best.value){
+            best.move = topMoves[i].move;
+            best.value = topMoves[i].value;
+        }
+    }
+
+    for(int i = 0; i < THREADS; i++){
+        free(inpArgs[i]);
+        free(outs[i]);
+    }
+
+    return best.move;
 }
 
 #endif

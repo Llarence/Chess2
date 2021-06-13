@@ -174,7 +174,7 @@ int isCapture(Game *game, Move move){
 void doMove(Game *game, Move move){
     Piece piece = game->board[move.fromX][move.fromY];
 
-    game->movesSinceCapture += 1;
+    game->movesSinceCapture++;
     int capture = isCapture(game, move);
     if(capture){
         game->movesSinceCapture = 0;
@@ -182,7 +182,7 @@ void doMove(Game *game, Move move){
 
     if(game->turn == WHITE){
         if(!capture && piece.type != PAWN && (game->prevMoveWhite2.fromX == move.fromX && game->prevMoveWhite2.fromY == move.fromY && game->prevMoveWhite2.toX == move.toX && game->prevMoveWhite2.toY == move.toY)){
-            game->repeatMoves += 1;
+            game->repeatMoves++;
         }else{
             game->repeatMoves = 0;
         }
@@ -191,7 +191,7 @@ void doMove(Game *game, Move move){
         game->prevMoveWhite1 = move;
     }else{
         if(!capture && piece.type != PAWN && (game->prevMoveBlack2.fromX == move.fromX && game->prevMoveBlack2.fromY == move.fromY && game->prevMoveBlack2.toX == move.toX && game->prevMoveBlack2.toY == move.toY)){
-            game->repeatMoves += 1;
+            game->repeatMoves++;
         }else{
             game->repeatMoves = 0;
         }
@@ -201,7 +201,7 @@ void doMove(Game *game, Move move){
     }
 
     if(game->board[move.toX][move.toY].type == NONE){
-        game->halfMoveClock += 1;
+        game->halfMoveClock++;
     }else{
         game->halfMoveClock = 0;
     }
@@ -294,7 +294,7 @@ void doMove(Game *game, Move move){
         game->turn = BLACK;
     }else{
         game->turn = WHITE;
-        game->moves += 1;
+        game->moves++;
     }
 }
 
