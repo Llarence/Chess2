@@ -4,7 +4,7 @@
 #define EXTEND_SEARCH_NONPAWNS 6
 #define EXTEND_DEPTH 2
 
-#define CONTEMPT 30
+#define CONTEMPT 0
 
 #define PAWN_VALUE 100
 #define KNIGHT_VALUE 320
