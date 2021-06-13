@@ -16,7 +16,7 @@
 #include "ai.c"
 
 #define AI_WHITE FALSE
-#define AI_BLACK TRUE
+#define AI_BLACK FALSE
 
 Game game;
 
@@ -216,7 +216,7 @@ void render(){
         drawPiece(game.board[selectedX][selectedY], mouseX - halfSizeX, mouseX + halfSizeX, mouseY - halfSizeY, mouseY + halfSizeY);
     }
 
-    glutSwapBuffers();
+    glFlush();
 }
 
 void mouseMove(int x, int y){
@@ -377,7 +377,7 @@ void initWindow(){
     int argc = 0;
     char *argv[0];
     glutInit(&argc, argv);
-    glutInitDisplayMode(GLUT_DOUBLE);
+    glutInitDisplayMode(GLUT_SINGLE);
 
     glutInitWindowSize(800, 800);
     glutInitWindowPosition(100, 100);
