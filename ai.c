@@ -30,7 +30,6 @@ typedef struct PartialMaxMoveArgs{
     int extensions;
 } PartialMaxMoveArgs;
 
-
 //fix endgame idle
 int eval(Game *game, int color, int depth){
     int over = isOver(game, FALSE);
@@ -198,6 +197,67 @@ int eval(Game *game, int color, int depth){
     return value;
 }
 
+void sort(Game *game, Move *moves, int color, int depth, int min){
+    int moveValues[218];
+    for(int i = 0; i < 218; i++){
+        if(moves[i].fromX == -1){
+            break;
+        }
+
+        Game newGame = copyGame(game);
+        doMove(&newGame, moves[i]);
+        moveValues[i] = eval(&newGame, color, depth);
+    }
+
+    Move tempMove;
+    int tempValue;
+    if(min){
+        for(int i = 0; i < 217; i++){
+            if(moves[i + 1].fromX == -1){
+                break;
+            }
+
+            for(int j = 0; j < 217; j++){
+                if(moves[j + 1].fromX == -1){
+                    break;
+                }
+
+                if (moveValues[j] < moveValues[j + 1]){
+                    tempMove = moves[j + 1];
+                    moves[j + 1] = moves[j];
+                    moves[j] = tempMove;
+
+                    tempValue = moveValues[j + 1];
+                    moveValues[j + 1] = moveValues[j];
+                    moveValues[j] = tempValue;
+                }
+            }
+        }
+    }else{
+        for(int i = 0; i < 217; i++){
+            if(moves[i + 1].fromX == -1){
+                break;
+            }
+
+            for(int j = 0; j < 217; j++){
+                if(moves[j + 1].fromX == -1){
+                    break;
+                }
+
+                if (moveValues[j] > moveValues[j + 1]){
+                    tempMove = moves[j + 1];
+                    moves[j + 1] = moves[j];
+                    moves[j] = tempMove;
+
+                    tempValue = moveValues[j + 1];
+                    moveValues[j + 1] = moveValues[j];
+                    moveValues[j] = tempValue;
+                }
+            }
+        }
+    }
+}
+
 int nonPawns(Game *game){
     int value = 0;
 
@@ -244,7 +304,7 @@ int extend(Game *game, Game *newGame, int color, Move move, int depth, int start
         value += 1;
     }
 
-    int deltaEval = startValue - eval(game, color, depth);
+    int deltaEval = startValue - eval(newGame, color, depth);
     if(deltaEval < 400){
         value += -1;
     }
@@ -256,7 +316,6 @@ ValuedMove maxMove(Game *game, int color, int alpha, int beta, int depth, int st
 
 ValuedMove minMove(Game *game, int color, int alpha, int beta, int depth, int startValue, int extensions){
     if((!(DEPTH - FULL_DEPTH < depth) && depth <= -extensions) || depth == DEPTH - MAX_DEPTH){
-        int value = eval(game, color, depth);
         return (ValuedMove){eval(game, color, depth), (Move){-1, -1, -1, -1, -1}};
     }
 
@@ -265,6 +324,7 @@ ValuedMove minMove(Game *game, int color, int alpha, int beta, int depth, int st
     if(moves[0].fromX == -1){
         return (ValuedMove){eval(game, color, depth), (Move){-1, -1, -1, -1, -1}};
     }
+    sort(game, moves, color, depth, FALSE);
 
     ValuedMove best = {1000000, (Move){-1, -1, -1, -1, -1}};
     for(int i = 0; i < 218; i++){
@@ -295,8 +355,7 @@ ValuedMove minMove(Game *game, int color, int alpha, int beta, int depth, int st
 
 ValuedMove maxMove(Game *game, int color, int alpha, int beta, int depth, int startValue, int extensions){
     if((!(DEPTH - FULL_DEPTH < depth) && depth <= -extensions) || depth == DEPTH - MAX_DEPTH){
-        int value = eval(game, color, depth);
-        return (ValuedMove){value, (Move){-1, -1, -1, -1, -1}};
+        return (ValuedMove){eval(game, color, depth), (Move){-1, -1, -1, -1, -1}};
     }
 
     Move moves[218];
@@ -304,6 +363,7 @@ ValuedMove maxMove(Game *game, int color, int alpha, int beta, int depth, int st
     if(moves[0].fromX == -1){
         return (ValuedMove){eval(game, color, depth), (Move){-1, -1, -1, -1, -1}};
     }
+    sort(game, moves, color, depth, TRUE);
 
     ValuedMove best = {-1000000, (Move){-1, -1, -1, -1, -1}};
     for(int i = 0; i < 218; i++){
@@ -340,7 +400,6 @@ void *partialMaxMove(void *inpArgs){
     best->value = -1000000;
     best->move = (Move){-1, -1, -1, -1, -1};
     for(int i = args->rangeMin; i < args->rangeMax; i++){
-
         Game newGame = copyGame(args->game);
         doMove(&newGame, args->moves[i]);
 

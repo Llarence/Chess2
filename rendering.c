@@ -16,7 +16,7 @@
 #include "ai.c"
 
 #define AI_WHITE FALSE
-#define AI_BLACK FALSE
+#define AI_BLACK TRUE
 
 Game game;
 
