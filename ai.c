@@ -197,7 +197,7 @@ int eval(Game *game, int color, int depth){
     return value;
 }
 
-void sort(Game *game, Move *moves, int color, int depth, int min){
+void sort(Game *game, Move *moves, int color, int depth, int max){
     int moveValues[218];
     for(int i = 0; i < 218; i++){
         if(moves[i].fromX == -1){
@@ -211,7 +211,7 @@ void sort(Game *game, Move *moves, int color, int depth, int min){
 
     Move tempMove;
     int tempValue;
-    if(min){
+    if(max){
         for(int i = 0; i < 217; i++){
             if(moves[i + 1].fromX == -1){
                 break;
